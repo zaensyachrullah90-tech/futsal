@@ -2,206 +2,361 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Futsal Tactical Manager - Mobile First</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Futsal Pro Tactical & Player Manager</title>
+  
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <!-- html2pdf.js untuk Export PDF -->
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- html2pdf.js untuk Export Dokumen Strategi PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: #090d16;
+      background-color: #080c14;
       color: #f3f4f6;
-      -webkit-tap-highlight-color: transparent;
     }
+    
+    /* Pitch Visualizer Gradient */
     .pitch-bg {
-      background: radial-gradient(circle, #15803d 0%, #166534 65%, #0f391e 100%);
-      border: 2px solid #22c55e;
+      background: radial-gradient(circle at center, #16a34a 0%, #15803d 50%, #052e16 100%);
+      border: 3px solid #22c55e;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
     }
-    .custom-scroll::-webkit-scrollbar {
-      width: 4px;
+
+    /* CSS Animations & Glow Effects */
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); }
+      50% { box-shadow: 0 0 25px rgba(34, 197, 94, 0.7); }
     }
-    .custom-scroll::-webkit-scrollbar-thumb {
-      background: #374151;
-      border-radius: 4px;
+    .glow-active { animation: pulseGlow 2s infinite; }
+
+    @keyframes floatToken {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
     }
+    .animated-token { animation: floatToken 3s ease-in-out infinite; }
+
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between select-none">
+<body class="min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-slate-950">
 
-  <!-- Header Mobile-First -->
-  <header class="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3">
-    <div class="max-w-md mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-md shadow-emerald-500/20">
-          <i class="fa-solid fa-futbol text-slate-950 text-lg"></i>
+  <!-- ================= NAVBAR / HEADER (Desktop & Mobile) ================= -->
+  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3.5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Logo & Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 glow-active">
+          <i class="fa-solid fa-futbol text-slate-950 text-xl"></i>
         </div>
         <div>
-          <h1 class="text-base font-extrabold tracking-tight text-white flex items-center gap-1.5">
-            FUTSAL <span class="text-emerald-400">TACTICS</span>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
+            FUTSAL <span class="text-emerald-400">TACTICAL PRO</span>
           </h1>
-          <p class="text-[10px] text-slate-400 font-medium">Mobile-First Player & Match Manager</p>
+          <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Sistem Manajemen Pemain, Strategi & Rotasi Realtime</p>
         </div>
       </div>
-      
-      <!-- Export PDF Button -->
-      <button onclick="exportStrategyPDF()" class="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-lg shadow-rose-900/30">
+
+      <!-- Desktop Tab Navigasi -->
+      <nav class="hidden md:flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-emerald-500 text-slate-950 shadow-md">
+          <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </button>
+        <button onclick="switchTab('squad')" id="nav-squad" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-users"></i> Skuad Pemain
+        </button>
+        <button onclick="switchTab('match')" id="nav-match" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-stopwatch"></i> Pertandingan Live
+        </button>
+        <button onclick="switchTab('tactics')" id="nav-tactics" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-chalkboard-user"></i> Taktik & Formasi
+        </button>
+        <button onclick="switchTab('settings')" id="nav-settings" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-database"></i> Database
+        </button>
+      </nav>
+
+      <!-- Action Button PDF Export -->
+      <button onclick="exportStrategyPDF()" class="bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-rose-900/30">
         <i class="fa-solid fa-file-pdf"></i>
-        <span>PDF</span>
+        <span>Export PDF</span>
       </button>
     </div>
   </header>
 
-  <!-- Container Utama -->
-  <main class="flex-1 max-w-md w-full mx-auto p-3 sm:p-4 space-y-4 pb-20">
+  <!-- ================= KONTEN UTAMA ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 pb-24 md:pb-8">
 
-    <!-- TAB 1: DATA SKUAD & PEMAIN -->
-    <section id="tab-squad" class="space-y-3">
-      <div class="flex justify-between items-center bg-slate-900/80 p-3.5 rounded-2xl border border-slate-800">
+    <!-- ================= TAB 1: DASHBOARD STATISTIK ANIMATIF ================= -->
+    <section id="tab-dashboard" class="space-y-6">
+      <!-- Title Banner -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-900/90 to-emerald-950/40 p-6 rounded-3xl border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xl">
         <div>
-          <h2 class="text-sm font-bold text-white">Database Pemain</h2>
-          <p class="text-[11px] text-slate-400">Input manual nomor punggung & posisi</p>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-white">Dashboard Analisis & Ringkasan Tim</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">Performa fisik pemain, komposisi rotasi, dan status daya tahan tim secara realtime.</p>
         </div>
-        <button onclick="openPlayerModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md shadow-emerald-500/20">
-          <i class="fa-solid fa-user-plus"></i> Tambah
+        <button onclick="openPlayerModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-5 py-3 rounded-2xl transition flex items-center gap-2 shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-user-plus text-sm"></i> Input Pemain Baru
         </button>
       </div>
 
-      <!-- Player List Grid -->
-      <div id="player-grid" class="space-y-2.5"></div>
-    </section>
-
-    <!-- TAB 2: LIVE MATCH & PERGANTIAN PEMAIN -->
-    <section id="tab-match" class="hidden space-y-3">
-      
-      <!-- Match Clock Banner -->
-      <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 space-y-3">
-        <div class="flex justify-between items-center">
-          <div>
-            <span class="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20">
-              <i class="fa-solid fa-circle text-[6px] animate-pulse mr-1"></i> TIMER PERTANDINGAN
-            </span>
-            <div id="timer-display" class="text-4xl font-extrabold tracking-widest text-white mt-1">00:00</div>
+      <!-- Stat Cards Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <!-- Total Pemain -->
+        <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-2 relative overflow-hidden group hover:border-slate-700 transition">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-400 uppercase">Total Skuad</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-users text-sm"></i></div>
           </div>
-          <div class="flex items-center gap-2">
-            <button id="btn-start-timer" onclick="toggleTimer()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-md shadow-emerald-500/20">
-              <i class="fa-solid fa-play"></i> Start
-            </button>
-            <button onclick="resetTimer()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs px-3 py-2.5 rounded-xl transition border border-slate-700">
-              <i class="fa-solid fa-rotate-left"></i>
-            </button>
+          <div class="text-3xl font-extrabold text-white" id="stat-total-players">0</div>
+          <p class="text-[10px] text-slate-500">Pemain terdaftar di database</p>
+        </div>
+
+        <!-- Starting 5 -->
+        <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-2 relative overflow-hidden group hover:border-slate-700 transition">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-400 uppercase">Starting 5</span>
+            <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-shirt text-sm"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-blue-400" id="stat-main-players">0 / 5</div>
+          <p class="text-[10px] text-slate-500">Pemain di dalam lapangan</p>
+        </div>
+
+        <!-- Bench Pemain -->
+        <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-2 relative overflow-hidden group hover:border-slate-700 transition">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-400 uppercase">Cadangan</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center"><i class="fa-solid fa-chair text-sm"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-amber-400" id="stat-bench-players">0</div>
+          <p class="text-[10px] text-slate-500">Pemain siap rotasi di bench</p>
+        </div>
+
+        <!-- Rata-Rata Pace -->
+        <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-2 relative overflow-hidden group hover:border-slate-700 transition">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-400 uppercase">Avg Speed</span>
+            <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center"><i class="fa-solid fa-bolt text-sm"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-purple-400" id="stat-avg-pace">0</div>
+          <p class="text-[10px] text-slate-500">Rata-rata kecepatan skuad</p>
+        </div>
+
+        <!-- Total Pergantian -->
+        <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-2 relative overflow-hidden group hover:border-slate-700 transition">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-400 uppercase">Rotasi Match</span>
+            <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center"><i class="fa-solid fa-arrows-rotate text-sm"></i></div>
+          </div>
+          <div class="text-3xl font-extrabold text-rose-400" id="stat-sub-count">0</div>
+          <p class="text-[10px] text-slate-500">Pergantian pemain dilakukan</p>
+        </div>
+      </div>
+
+      <!-- Radar Bar Statistik Skuad Tim -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 space-y-4">
+          <h3 class="font-extrabold text-base text-white flex items-center gap-2">
+            <i class="fa-solid fa-chart-bar text-emerald-400"></i> Rata-Rata Atribut Fisik & Teknik Skuad
+          </h3>
+          <div class="space-y-3" id="team-attribute-bars">
+            <!-- Animated Attribute Bars Generated via JS -->
           </div>
         </div>
 
-        <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
-          <span>Peringatan Rotasi:</span>
+        <!-- Ringkasan Posisi & Distribusi -->
+        <div class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 space-y-4 flex flex-col justify-between">
+          <div>
+            <h3 class="font-extrabold text-base text-white flex items-center gap-2 mb-4">
+              <i class="fa-solid fa-pie-chart text-teal-400"></i> Distribusi Posisi Pemain
+            </h3>
+            <div class="grid grid-cols-2 gap-3" id="position-distribution">
+              <!-- Position Cards Generated via JS -->
+            </div>
+          </div>
+          <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-xs text-slate-400 space-y-1 mt-4">
+            <span class="font-bold text-emerald-400 block"><i class="fa-solid fa-lightbulb mr-1"></i> Rekomendasi Taktik:</span>
+            <p id="tactical-recommendation">Pastikan terdapat minimal 2 Flank cepat dan 1 Anchor kuat untuk menjaga kedalaman pertahanan.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ================= TAB 2: SKUAD PEMAIN (MANAGEMENT & FORM INPUT) ================= -->
+    <section id="tab-squad" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/80 p-5 rounded-3xl border border-slate-800">
+        <div>
+          <h2 class="text-lg font-extrabold text-white">Database Pemain Futsal</h2>
+          <p class="text-xs text-slate-400">Kelola nomor punggung, posisi, atribut, dan status kelayakan main</p>
+        </div>
+        <button onclick="openPlayerModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-user-plus"></i> Input Pemain Baru
+        </button>
+      </div>
+
+      <!-- Player Cards Responsive Grid -->
+      <div id="player-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <!-- Render Cards via JS -->
+      </div>
+    </section>
+
+
+    <!-- ================= TAB 3: LIVE MATCH & PERGANTIAN PEMAIN (A DIGANTIKAN Z) ================= -->
+    <section id="tab-match" class="hidden space-y-6">
+      
+      <!-- Live Timer Banner -->
+      <div class="bg-slate-900/90 p-6 rounded-3xl border border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        <div class="text-center md:text-left space-y-1">
+          <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-full border border-emerald-500/20">
+            <i class="fa-solid fa-circle text-[8px] animate-pulse mr-1"></i> TIMER MATCH REALTIME
+          </span>
+          <div id="timer-display" class="text-5xl font-black tracking-widest text-white mt-2 font-mono">00:00</div>
+          <p class="text-xs text-slate-400">Waktu Pertandingan Berjalan</p>
+        </div>
+
+        <div class="flex justify-center items-center gap-3">
+          <button id="btn-start-timer" onclick="toggleTimer()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-6 py-3.5 rounded-2xl transition flex items-center gap-2 shadow-lg shadow-emerald-500/20">
+            <i class="fa-solid fa-play"></i> Mulai Timer
+          </button>
+          <button onclick="resetTimer()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-3.5 rounded-2xl transition border border-slate-700">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+          </button>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+          <div>
+            <label class="text-xs text-slate-400 font-bold block">Batas Menit Rotasi:</label>
+            <span class="text-[10px] text-amber-400">Peringatan pergantian otomatis</span>
+          </div>
           <div class="flex items-center gap-1">
-            <input type="number" id="rotation-limit-input" value="10" min="1" max="40" onchange="updateRotationLimit(this.value)" class="w-12 bg-slate-950 border border-slate-700 text-emerald-400 text-center font-bold rounded-lg py-0.5 focus:outline-none">
-            <span class="text-[11px]">Menit</span>
+            <input type="number" id="rotation-limit-input" value="10" min="1" max="40" onchange="updateRotationLimit(this.value)" class="w-14 bg-slate-900 border border-slate-700 text-emerald-400 text-center font-bold text-sm rounded-xl py-1.5 focus:outline-none focus:border-emerald-500">
+            <span class="text-xs text-slate-400 font-bold">m</span>
           </div>
         </div>
       </div>
 
-      <!-- Action Button Pergantian -->
-      <button onclick="openSubModal()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-xs py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
-        <i class="fa-solid fa-arrows-rotate text-sm"></i>
-        <span>LAKUKAN PERGANTIAN PEMAIN (SUBSTITUTION)</span>
+      <!-- Action Button Pergantian Pemain -->
+      <button onclick="openSubModal()" class="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm py-4 rounded-2xl transition flex items-center justify-center gap-3 shadow-xl shadow-amber-500/20 glow-active">
+        <i class="fa-solid fa-arrows-rotate text-lg"></i>
+        <span>PROSES PERGANTIAN PEMAIN TAKTIS (SIAPA MENGGANTI SIAPA)</span>
       </button>
 
-      <!-- Starting 5 -->
-      <div class="bg-slate-900/90 p-3.5 rounded-2xl border border-slate-800 space-y-2.5">
-        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-          <h3 class="font-bold text-emerald-400 text-xs flex items-center gap-1.5">
-            <i class="fa-solid fa-shirt"></i> PEMAIN UTAMA DI LAPANGAN (5)
-          </h3>
-          <span class="text-[10px] text-slate-400" id="main-count">0 / 5</span>
+      <!-- Desktop 2 Column: Starting 5 vs Bench -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Pemain Utama (Starting 5) -->
+        <div class="bg-slate-900/90 p-5 rounded-3xl border border-slate-800 space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h3 class="font-extrabold text-emerald-400 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-shirt"></i> PEMAIN UTAMA DI LAPANGAN (STARTING 5)
+            </h3>
+            <span class="text-xs font-bold text-slate-400" id="main-count">0 / 5 Pemain</span>
+          </div>
+          <div id="main-players-list" class="space-y-2.5">
+            <!-- List Starting 5 -->
+          </div>
         </div>
-        <div id="main-players-list" class="space-y-2"></div>
+
+        <!-- Bangku Cadangan (Bench) -->
+        <div class="bg-slate-900/90 p-5 rounded-3xl border border-slate-800 space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h3 class="font-extrabold text-amber-400 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-chair"></i> BANGKU CADANGAN (BENCH)
+            </h3>
+            <span class="text-xs font-bold text-slate-400" id="subs-count">0 Pemain</span>
+          </div>
+          <div id="subs-players-list" class="space-y-2.5">
+            <!-- List Bench -->
+          </div>
+        </div>
+
       </div>
 
-      <!-- Bench -->
-      <div class="bg-slate-900/90 p-3.5 rounded-2xl border border-slate-800 space-y-2.5">
-        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-          <h3 class="font-bold text-amber-400 text-xs flex items-center gap-1.5">
-            <i class="fa-solid fa-chair"></i> BANGKU CADANGAN
-          </h3>
-          <span class="text-[10px] text-slate-400" id="subs-count">0 Pemain</span>
-        </div>
-        <div id="subs-players-list" class="space-y-2"></div>
-      </div>
-
-      <!-- Log Pergantian -->
-      <div class="bg-slate-900/90 p-3.5 rounded-2xl border border-slate-800 space-y-2.5">
-        <h3 class="font-bold text-white text-xs flex items-center gap-1.5 border-b border-slate-800 pb-2">
-          <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i> RIWAYAT PERGANTIAN (SIAPA MENGGANTI SIAPA)
+      <!-- Riwayat Log Pergantian (A digantikan Z) -->
+      <div class="bg-slate-900/90 p-6 rounded-3xl border border-slate-800 space-y-4">
+        <h3 class="font-extrabold text-white text-sm flex items-center gap-2 border-b border-slate-800 pb-3">
+          <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i> LOG PERGANTIAN PEMAIN REALTIME
         </h3>
-        <div class="space-y-2" id="sub-log-list">
-          <p class="text-center text-xs text-slate-500 py-3">Belum ada catatan pergantian pemain.</p>
+        <div class="space-y-2.5 max-h-60 overflow-y-auto custom-scroll pr-1" id="sub-log-list">
+          <p class="text-center text-xs text-slate-500 py-4">Belum ada catatan pergantian pemain dalam match ini.</p>
         </div>
       </div>
 
     </section>
 
-    <!-- TAB 3: FORMASI & TAKTIK LAPANGAN -->
-    <section id="tab-tactics" class="hidden space-y-3">
-      <div class="bg-slate-900/90 p-3.5 rounded-2xl border border-slate-800 space-y-2">
-        <div class="flex justify-between items-center">
-          <h2 class="text-xs font-bold text-white">Formasi Taktis Futsal</h2>
-          <span class="text-[10px] text-emerald-400 font-semibold" id="current-formation-label">1-2-1 Diamond</span>
+
+    <!-- ================= TAB 4: TAKTIK & FORMASI LAPANGAN ================= -->
+    <section id="tab-tactics" class="hidden space-y-6">
+      <div class="bg-slate-900/90 p-5 rounded-3xl border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 class="text-lg font-extrabold text-white">Visualisasi Formasi Taktis Futsal</h2>
+          <p class="text-xs text-slate-400">Pilih skema taktik untuk menyesuaikan posisi 5 pemain utama di lapangan</p>
         </div>
-        <select id="formation-select" onchange="changeFormation(this.value)" class="w-full bg-slate-950 border border-slate-700 text-emerald-400 text-xs font-bold rounded-xl p-2.5 focus:outline-none">
-          <option value="1-2-1">Formasi 1-2-1 (Diamond Standard)</option>
-          <option value="2-2">Formasi 2-2 (Square / Box Defense)</option>
-          <option value="4-0">Formasi 4-0 (Total Attack / Rotasi Tanpa Pivot)</option>
-          <option value="3-0-1">Formasi 3-0-1 (Anchor & Flank Pressing)</option>
-          <option value="1-1-2">Formasi 1-1-2 (Y-Shape / High Attack)</option>
-          <option value="2-1-1">Formasi 2-1-1 (Pyramid / Counter)</option>
-          <option value="5-0">Formasi 5-0 (Power Play / Flying Goalkeeper)</option>
-          <option value="1-3-0">Formasi 1-3-0 (Low Block Defense)</option>
-        </select>
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <span class="text-xs font-bold text-emerald-400 whitespace-nowrap hidden sm:inline">Pilih Formasi:</span>
+          <select id="formation-select" onchange="changeFormation(this.value)" class="w-full md:w-auto bg-slate-950 border border-slate-700 text-emerald-400 text-xs font-extrabold rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500">
+            <option value="1-2-1">Formasi 1-2-1 (Diamond Standard)</option>
+            <option value="2-2">Formasi 2-2 (Square / Box Defense)</option>
+            <option value="4-0">Formasi 4-0 (Total Attack / Rotasi Pivotless)</option>
+            <option value="3-0-1">Formasi 3-0-1 (Anchor & Flank Pressing)</option>
+            <option value="1-1-2">Formasi 1-1-2 (Y-Shape High Attack)</option>
+            <option value="2-1-1">Formasi 2-1-1 (Pyramid Counter Attack)</option>
+            <option value="5-0">Formasi 5-0 (Power Play / Flying Goalkeeper)</option>
+            <option value="1-3-0">Formasi 1-3-0 (Low Block Defense)</option>
+          </select>
+        </div>
       </div>
 
-      <!-- Lapangan Futsal -->
-      <div class="pitch-bg rounded-2xl p-4 relative h-[380px] w-full shadow-2xl overflow-hidden">
+      <!-- Lapangan Futsal Interactive Container -->
+      <div class="pitch-bg rounded-3xl p-6 relative h-[420px] sm:h-[480px] w-full max-w-4xl mx-auto shadow-2xl overflow-hidden">
+        <!-- Lines & Circle -->
         <div class="absolute inset-x-0 top-1/2 h-0.5 bg-white/40 -translate-y-1/2"></div>
-        <div class="absolute inset-x-1/3 top-1/2 -translate-y-1/2 h-20 w-20 mx-auto border-2 border-white/40 rounded-full"></div>
-        <div class="absolute inset-x-1/4 top-0 h-14 border-b-2 border-x-2 border-white/40 rounded-b-full"></div>
-        <div class="absolute inset-x-1/4 bottom-0 h-14 border-t-2 border-x-2 border-white/40 rounded-t-full"></div>
+        <div class="absolute inset-x-1/3 top-1/2 -translate-y-1/2 h-24 sm:h-28 w-24 sm:w-28 mx-auto border-2 border-white/40 rounded-full"></div>
+        <div class="absolute inset-x-1/4 top-0 h-16 sm:h-20 border-b-2 border-x-2 border-white/40 rounded-b-full"></div>
+        <div class="absolute inset-x-1/4 bottom-0 h-16 sm:h-20 border-t-2 border-x-2 border-white/40 rounded-t-full"></div>
 
-        <div id="pitch-container" class="relative w-full h-full"></div>
+        <!-- Position Tokens Container -->
+        <div id="pitch-container" class="relative w-full h-full">
+          <!-- Dynamic Animated Tokens via JS -->
+        </div>
       </div>
 
-      <!-- Catatan Pelatih -->
-      <div class="bg-slate-900/90 p-3.5 rounded-2xl border border-slate-800 space-y-2">
-        <label class="text-xs font-bold text-white block">Catatan Strategi Match Pelatih:</label>
-        <textarea id="coach-notes" rows="3" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs p-2.5 rounded-xl focus:outline-none focus:border-emerald-500" placeholder="Contoh: Man-to-man marking di 10 menit pertama..."></textarea>
+      <!-- Strategy Notes Area -->
+      <div class="bg-slate-900/90 p-5 rounded-3xl border border-slate-800 space-y-2">
+        <label class="text-xs font-bold text-white block">Catatan Strategi & Arahan Pelatih:</label>
+        <textarea id="coach-notes" rows="3" class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs p-3 rounded-2xl focus:outline-none focus:border-emerald-500 custom-scroll" placeholder="Masukkan catatan taktik khusus pelatih di sini..."></textarea>
       </div>
     </section>
 
-    <!-- TAB 4: DATABASE & GOOGLE SHEETS -->
-    <section id="tab-settings" class="hidden space-y-3">
-      <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 space-y-3">
-        <h2 class="text-xs font-bold text-white flex items-center gap-1.5">
-          <i class="fa-solid fa-database text-emerald-400"></i> Database & Sync Endpoint
-        </h2>
-        <p class="text-[11px] text-slate-400">Terhubung langsung ke Google Spreadsheet Apps Script URL Anda.</p>
 
-        <div class="space-y-1.5">
-          <label class="text-[11px] text-slate-300 font-semibold">Google Apps Script URL:</label>
-          <input type="text" id="gas-url-input" class="w-full bg-slate-950 border border-slate-700 text-emerald-400 text-xs p-2.5 rounded-xl focus:outline-none font-mono">
+    <!-- ================= TAB 5: DATABASE & SPREADSHEET SYNC ================= -->
+    <section id="tab-settings" class="hidden space-y-6">
+      <div class="bg-slate-900/90 p-6 rounded-3xl border border-slate-800 space-y-4">
+        <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+          <i class="fa-solid fa-cloud-arrow-up text-emerald-400"></i> Integrasi Google Apps Script Endpoint
+        </h2>
+        <p class="text-xs text-slate-400">Aplikasi ini terhubung langsung secara realtime dengan Google Spreadsheet database Anda.</p>
+
+        <div class="space-y-2">
+          <label class="text-xs text-slate-300 font-semibold block">Google Apps Script Web App URL:</label>
+          <input type="text" id="gas-url-input" class="w-full bg-slate-950 border border-slate-700 text-emerald-400 text-xs p-3.5 rounded-2xl focus:outline-none focus:border-emerald-500 font-mono">
         </div>
 
-        <div class="flex gap-2 pt-1">
-          <button onclick="saveGasUrl()" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-2 rounded-xl transition">
-            Simpan Endpoint
+        <div class="flex flex-wrap gap-3 pt-2">
+          <button onclick="saveGasUrl()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-6 py-3 rounded-xl transition shadow-lg shadow-emerald-500/20">
+            Simpan Endpoint URL
           </button>
-          <button onclick="fetchFromSheets()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-2 rounded-xl transition border border-slate-700">
-            <i class="fa-solid fa-rotate mr-1"></i> Sync Sheet
+          <button onclick="fetchFromSheets()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-6 py-3 rounded-xl transition border border-slate-700">
+            <i class="fa-solid fa-rotate mr-2"></i> Sinkronisasi Data Spreadsheet
           </button>
         </div>
       </div>
@@ -209,127 +364,141 @@
 
   </main>
 
-  <!-- Navigasi Bawah Mobile -->
-  <nav class="fixed bottom-0 inset-x-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-40 py-2 px-3">
-    <div class="max-w-md mx-auto grid grid-cols-4 gap-1">
-      <button onclick="switchTab('squad')" id="btn-squad" class="tab-btn flex flex-col items-center gap-1 py-1 text-emerald-400">
-        <i class="fa-solid fa-users text-sm"></i>
-        <span class="text-[10px] font-bold">Skuad</span>
+
+  <!-- ================= MOBILE BOTTOM NAVIGATION BAR ================= -->
+  <nav class="md:hidden fixed bottom-0 inset-x-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-40 py-2.5 px-3">
+    <div class="grid grid-cols-5 gap-1 text-center">
+      <button onclick="switchTab('dashboard')" id="mob-dashboard" class="mob-btn flex flex-col items-center gap-1 py-1 text-emerald-400">
+        <i class="fa-solid fa-chart-pie text-base"></i>
+        <span class="text-[9px] font-bold">Dashboard</span>
       </button>
-      <button onclick="switchTab('match')" id="btn-match" class="tab-btn flex flex-col items-center gap-1 py-1 text-slate-400">
-        <i class="fa-solid fa-stopwatch text-sm"></i>
-        <span class="text-[10px] font-bold">Match Live</span>
+      <button onclick="switchTab('squad')" id="mob-squad" class="mob-btn flex flex-col items-center gap-1 py-1 text-slate-400">
+        <i class="fa-solid fa-users text-base"></i>
+        <span class="text-[9px] font-bold">Skuad</span>
       </button>
-      <button onclick="switchTab('tactics')" id="btn-tactics" class="tab-btn flex flex-col items-center gap-1 py-1 text-slate-400">
-        <i class="fa-solid fa-chalkboard-user text-sm"></i>
-        <span class="text-[10px] font-bold">Taktik</span>
+      <button onclick="switchTab('match')" id="mob-match" class="mob-btn flex flex-col items-center gap-1 py-1 text-slate-400">
+        <i class="fa-solid fa-stopwatch text-base"></i>
+        <span class="text-[9px] font-bold">Match</span>
       </button>
-      <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn flex flex-col items-center gap-1 py-1 text-slate-400">
-        <i class="fa-solid fa-gear text-sm"></i>
-        <span class="text-[10px] font-bold">Database</span>
+      <button onclick="switchTab('tactics')" id="mob-tactics" class="mob-btn flex flex-col items-center gap-1 py-1 text-slate-400">
+        <i class="fa-solid fa-chalkboard-user text-base"></i>
+        <span class="text-[9px] font-bold">Taktik</span>
+      </button>
+      <button onclick="switchTab('settings')" id="mob-settings" class="mob-btn flex flex-col items-center gap-1 py-1 text-slate-400">
+        <i class="fa-solid fa-database text-base"></i>
+        <span class="text-[9px] font-bold">Database</span>
       </button>
     </div>
   </nav>
 
-  <!-- MODAL TAMBAH PEMAIN -->
-  <div id="player-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-4 space-y-3 custom-scroll max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <h3 id="modal-title" class="font-bold text-white text-sm">Tambah Pemain Baru</h3>
-        <button onclick="closePlayerModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+
+  <!-- ================= MODAL 1: FORM INPUT / EDIT PEMAIN LENGKAP ================= -->
+  <div id="player-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 space-y-4 custom-scroll max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="modal-title" class="font-extrabold text-white text-base">Form Input Pemain Baru</h3>
+        <button onclick="closePlayerModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
-      <form id="player-form" onsubmit="handlePlayerSubmit(event)" class="space-y-2.5">
+      <form id="player-form" onsubmit="handlePlayerSubmit(event)" class="space-y-4">
         <input type="hidden" id="player-id">
+        
         <div>
-          <label class="text-[11px] text-slate-400 font-semibold block mb-1">Nama Lengkap</label>
-          <input type="text" id="player-nama" required placeholder="Contoh: Syachrullah" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2.5 rounded-xl focus:outline-none focus:border-emerald-500">
+          <label class="text-xs text-slate-300 font-bold block mb-1.5">Nama Lengkap Pemain</label>
+          <input type="text" id="player-nama" required placeholder="Contoh: Zaen Syachrullah" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-3 rounded-xl focus:outline-none focus:border-emerald-500">
         </div>
-        <div class="grid grid-cols-2 gap-2">
+
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-[11px] text-slate-400 font-semibold block mb-1">No Punggung</label>
-            <input type="number" id="player-no" required placeholder="10" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2.5 rounded-xl focus:outline-none focus:border-emerald-500">
+            <label class="text-xs text-slate-300 font-bold block mb-1.5">Nomor Punggung</label>
+            <input type="number" id="player-no" required placeholder="10" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-3 rounded-xl focus:outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label class="text-[11px] text-slate-400 font-semibold block mb-1">Posisi Utama</label>
-            <select id="player-posisi" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2.5 rounded-xl focus:outline-none focus:border-emerald-500">
-              <option value="Anchor">Anchor</option>
-              <option value="Flank">Flank</option>
-              <option value="Pivot">Pivot</option>
-              <option value="Kiper">Kiper</option>
+            <label class="text-xs text-slate-300 font-bold block mb-1.5">Posisi Utama</label>
+            <select id="player-posisi" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-3 rounded-xl focus:outline-none focus:border-emerald-500">
+              <option value="Anchor">Anchor (Defensive Base)</option>
+              <option value="Flank">Flank (Wing Attacker)</option>
+              <option value="Pivot">Pivot (Target Forward)</option>
+              <option value="Kiper">Kiper (Goalkeeper)</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label class="text-[11px] text-slate-400 font-semibold block mb-1">Status Skuad</label>
-          <select id="player-status" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2.5 rounded-xl focus:outline-none focus:border-emerald-500">
+          <label class="text-xs text-slate-300 font-bold block mb-1.5">Status Kelayakan Skuad</label>
+          <select id="player-status" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-3 rounded-xl focus:outline-none focus:border-emerald-500">
             <option value="Pemain Utama">Pemain Utama (Starting 5)</option>
             <option value="Pemain Cadangan">Pemain Cadangan (Bench)</option>
           </select>
         </div>
 
-        <div class="border-t border-slate-800 pt-2">
-          <label class="text-[11px] text-emerald-400 font-bold block mb-1.5">Atribut Kemampuan (1-99)</label>
-          <div class="grid grid-cols-3 gap-1.5">
-            <div><span class="text-[9px] text-slate-400">Pace:</span><input type="number" id="attr-pace" value="75" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-1.5 rounded-lg"></div>
-            <div><span class="text-[9px] text-slate-400">Shooting:</span><input type="number" id="attr-shooting" value="70" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-1.5 rounded-lg"></div>
-            <div><span class="text-[9px] text-slate-400">Passing:</span><input type="number" id="attr-passing" value="72" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-1.5 rounded-lg"></div>
-            <div><span class="text-[9px] text-slate-400">Dribbling:</span><input type="number" id="attr-dribbling" value="74" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-1.5 rounded-lg"></div>
-            <div><span class="text-[9px] text-slate-400">Defending:</span><input type="number" id="attr-defending" value="68" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-1.5 rounded-lg"></div>
-            <div><span class="text-[9px] text-slate-400">Physical:</span><input type="number" id="attr-physical" value="70" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-1.5 rounded-lg"></div>
+        <div class="border-t border-slate-800 pt-3">
+          <label class="text-xs text-emerald-400 font-bold block mb-2">Statistik Atribut Pemain (Nilai 1 - 99)</label>
+          <div class="grid grid-cols-3 gap-2.5">
+            <div><span class="text-[10px] text-slate-400 block mb-1">Pace (Kecepatan)</span><input type="number" id="attr-pace" value="75" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2 rounded-lg text-center font-bold"></div>
+            <div><span class="text-[10px] text-slate-400 block mb-1">Shooting (Tendangan)</span><input type="number" id="attr-shooting" value="70" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2 rounded-lg text-center font-bold"></div>
+            <div><span class="text-[10px] text-slate-400 block mb-1">Passing (Umpan)</span><input type="number" id="attr-passing" value="72" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2 rounded-lg text-center font-bold"></div>
+            <div><span class="text-[10px] text-slate-400 block mb-1">Dribbling (Giringan)</span><input type="number" id="attr-dribbling" value="74" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2 rounded-lg text-center font-bold"></div>
+            <div><span class="text-[10px] text-slate-400 block mb-1">Defending (Bertahan)</span><input type="number" id="attr-defending" value="68" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2 rounded-lg text-center font-bold"></div>
+            <div><span class="text-[10px] text-slate-400 block mb-1">Physical (Fisik)</span><input type="number" id="attr-physical" value="70" min="1" max="99" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2 rounded-lg text-center font-bold"></div>
           </div>
         </div>
 
-        <div class="pt-2 flex gap-2 justify-end">
-          <button type="button" onclick="closePlayerModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 text-xs font-bold rounded-xl">Batal</button>
-          <button type="submit" class="px-4 py-1.5 bg-emerald-500 text-slate-950 text-xs font-bold rounded-xl">Simpan Data</button>
+        <div class="pt-3 flex gap-3 justify-end">
+          <button type="button" onclick="closePlayerModal()" class="px-5 py-2.5 bg-slate-800 text-slate-300 text-xs font-bold rounded-xl">Batal</button>
+          <button type="submit" class="px-6 py-2.5 bg-emerald-500 text-slate-950 text-xs font-extrabold rounded-xl shadow-lg shadow-emerald-500/20">Simpan ke Database</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL PERGANTIAN SPESIFIK -->
-  <div id="sub-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-4 space-y-3">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <h3 class="font-bold text-amber-400 text-sm flex items-center gap-1.5">
-          <i class="fa-solid fa-arrows-rotate"></i> Pergantian Pemain Taktis
+
+  <!-- ================= MODAL 2: PERGANTIAN PEMAIN EKSPLISIT (SIAPA MENGGANTI SIAPA) ================= -->
+  <div id="sub-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-extrabold text-amber-400 text-base flex items-center gap-2">
+          <i class="fa-solid fa-arrows-rotate"></i> Form Pergantian Pemain
         </h3>
-        <button onclick="closeSubModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+        <button onclick="closeSubModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
-      <div class="space-y-3">
+      <div class="space-y-4">
         <div>
-          <label class="text-[11px] text-red-400 font-bold block mb-1">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i> PEMAIN KELUAR (Dari Starting 5)
+          <label class="text-xs text-red-400 font-extrabold block mb-1.5">
+            <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> PEMAIN KELUAR (Dari Starting 5):
           </label>
-          <select id="sub-out-select" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2.5 rounded-xl focus:outline-none"></select>
+          <select id="sub-out-select" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-3 rounded-xl focus:outline-none focus:border-red-500 font-bold"></select>
+        </div>
+
+        <div class="text-center text-amber-400">
+          <i class="fa-solid fa-arrows-up-down text-xl animate-bounce"></i>
         </div>
 
         <div>
-          <label class="text-[11px] text-emerald-400 font-bold block mb-1">
-            <i class="fa-solid fa-arrow-right-to-bracket"></i> PEMAIN MASUK (Dari Bench)
+          <label class="text-xs text-emerald-400 font-extrabold block mb-1.5">
+            <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> PEMAIN MASUK (Dari Bangku Cadangan):
           </label>
-          <select id="sub-in-select" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-2.5 rounded-xl focus:outline-none"></select>
+          <select id="sub-in-select" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-3 rounded-xl focus:outline-none focus:border-emerald-500 font-bold"></select>
         </div>
 
-        <div class="pt-2 flex gap-2">
-          <button onclick="closeSubModal()" class="flex-1 py-2 bg-slate-800 text-slate-300 text-xs font-bold rounded-xl">Batal</button>
-          <button onclick="executeExplicitSubstitution()" class="flex-1 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 text-xs font-extrabold rounded-xl shadow-md shadow-amber-500/20">
-            Proses Pergantian
+        <div class="pt-3 flex gap-3">
+          <button onclick="closeSubModal()" class="flex-1 py-3 bg-slate-800 text-slate-300 text-xs font-bold rounded-xl">Batal</button>
+          <button onclick="executeExplicitSubstitution()" class="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 text-xs font-black rounded-xl shadow-lg shadow-amber-500/20">
+            Proses Rotasi
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- TEMPLATE UNTUK PDF EXPORT -->
+
+  <!-- ================= TEMPLATE RENDER PDF EXPORT ================= -->
   <div id="pdf-template" class="hidden bg-white text-slate-900 p-8 space-y-6 max-w-2xl mx-auto text-xs">
     <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-center">
       <div>
         <h1 class="text-2xl font-black tracking-tight text-slate-900">LAPORAN STRATEGI & TAKTIK MATCH</h1>
-        <p class="text-xs text-slate-600 font-bold">Futsal Team Management & Substitution Report</p>
+        <p class="text-xs text-slate-600 font-bold">Futsal Pro Tactical & Substitution Report</p>
       </div>
       <div class="text-right">
         <span class="text-xs text-slate-500 block" id="pdf-date"></span>
@@ -338,16 +507,16 @@
     </div>
 
     <div class="space-y-2">
-      <h2 class="font-black text-sm uppercase bg-slate-100 p-2 border-l-4 border-emerald-600">
+      <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-emerald-600">
         1. Susunan Pemain Utama (Starting 5)
       </h2>
       <table class="w-full border-collapse border border-slate-300 text-xs">
         <thead class="bg-slate-200 font-bold text-slate-800">
           <tr>
-            <th class="border border-slate-300 p-1.5 text-center">NO</th>
-            <th class="border border-slate-300 p-1.5 text-left">NAMA PEMAIN</th>
-            <th class="border border-slate-300 p-1.5 text-center">POSISI</th>
-            <th class="border border-slate-300 p-1.5 text-center">WAKTU MAIN</th>
+            <th class="border border-slate-300 p-2 text-center">NO</th>
+            <th class="border border-slate-300 p-2 text-left">NAMA PEMAIN</th>
+            <th class="border border-slate-300 p-2 text-center">POSISI</th>
+            <th class="border border-slate-300 p-2 text-center">WAKTU MAIN</th>
           </tr>
         </thead>
         <tbody id="pdf-starting-tbody"></tbody>
@@ -355,16 +524,16 @@
     </div>
 
     <div class="space-y-2">
-      <h2 class="font-black text-sm uppercase bg-slate-100 p-2 border-l-4 border-amber-600">
+      <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-amber-600">
         2. Pemain Cadangan (Bench)
       </h2>
       <table class="w-full border-collapse border border-slate-300 text-xs">
         <thead class="bg-slate-200 font-bold text-slate-800">
           <tr>
-            <th class="border border-slate-300 p-1.5 text-center">NO</th>
-            <th class="border border-slate-300 p-1.5 text-left">NAMA PEMAIN</th>
-            <th class="border border-slate-300 p-1.5 text-center">POSISI</th>
-            <th class="border border-slate-300 p-1.5 text-center">TOTAL MAIN</th>
+            <th class="border border-slate-300 p-2 text-center">NO</th>
+            <th class="border border-slate-300 p-2 text-left">NAMA PEMAIN</th>
+            <th class="border border-slate-300 p-2 text-center">POSISI</th>
+            <th class="border border-slate-300 p-2 text-center">TOTAL MAIN</th>
           </tr>
         </thead>
         <tbody id="pdf-bench-tbody"></tbody>
@@ -372,15 +541,14 @@
     </div>
 
     <div class="space-y-2">
-      <h2 class="font-black text-sm uppercase bg-slate-100 p-2 border-l-4 border-blue-600">
+      <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-blue-600">
         3. Riwayat Pergantian Pemain (Siapa Mengganti Siapa)
       </h2>
       <table class="w-full border-collapse border border-slate-300 text-xs">
         <thead class="bg-slate-200 font-bold text-slate-800">
           <tr>
-            <th class="border border-slate-300 p-1.5 text-center">MENIT</th>
-            <th class="border border-slate-300 p-1.5 text-left">PEMAIN KELUAR</th>
-            <th class="border border-slate-300 p-1.5 text-left">PEMAIN MASUK</th>
+            <th class="border border-slate-300 p-2 text-center">MENIT</th>
+            <th class="border border-slate-300 p-2 text-left">Rincian Pergantian Pemain</th>
           </tr>
         </thead>
         <tbody id="pdf-sub-tbody"></tbody>
@@ -388,17 +556,19 @@
     </div>
 
     <div class="space-y-2">
-      <h2 class="font-black text-sm uppercase bg-slate-100 p-2 border-l-4 border-purple-600">
-        4. Catatan Taktik Pelatih
+      <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-purple-600">
+        4. Catatan Strategi Pelatih
       </h2>
       <p id="pdf-notes-content" class="p-3 border border-slate-300 rounded bg-slate-50 italic text-slate-700">
-        Tidak ada catatan.
+        Tidak ada catatan khusus.
       </p>
     </div>
   </div>
 
-  <!-- SCRIPT UTAMA -->
+
+  <!-- ================= JAVASCRIPT LOGIK APLIKASI ================= -->
   <script>
+    // URL Web App Google Apps Script terpasang
     let GAS_URL = "https://script.google.com/macros/s/AKfycbzq6gYJsY0hbpL5XGU6SxTwwEaoBHmGfRbWSUUAw48FzAQE0BZtKoDGcw9HXibCuXUqjw/exec";
 
     let players = [];
@@ -412,79 +582,167 @@
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("gas-url-input").value = GAS_URL;
       fetchFromSheets();
+      renderDashboardStats();
       renderMatchView();
       renderTacticsPitch();
     });
 
+    // NAVIGATION SYSTEM
     function switchTab(tab) {
       document.querySelectorAll('section[id^="tab-"]').forEach(el => el.classList.add('hidden'));
       document.getElementById(`tab-${tab}`).classList.remove('hidden');
 
+      // Update Desktop Nav
       document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-emerald-500', 'text-slate-950', 'shadow-md');
+        btn.classList.add('text-slate-400');
+      });
+      const activeNav = document.getElementById(`nav-${tab}`);
+      if (activeNav) {
+        activeNav.classList.add('bg-emerald-500', 'text-slate-950', 'shadow-md');
+        activeNav.classList.remove('text-slate-400');
+      }
+
+      // Update Mobile Nav
+      document.querySelectorAll('.mob-btn').forEach(btn => {
         btn.classList.remove('text-emerald-400');
         btn.classList.add('text-slate-400');
       });
-
-      const activeBtn = document.getElementById(`btn-${tab}`);
-      activeBtn.classList.add('text-emerald-400');
-      activeBtn.classList.remove('text-slate-400');
+      const activeMob = document.getElementById(`mob-${tab}`);
+      if (activeMob) {
+        activeMob.classList.add('text-emerald-400');
+        activeMob.classList.remove('text-slate-400');
+      }
     }
 
+    // DASHBOARD & STATS CALCULATOR
+    function renderDashboardStats() {
+      const mains = players.filter(p => p.status === 'Pemain Utama');
+      const subs = players.filter(p => p.status === 'Pemain Cadangan');
+
+      document.getElementById('stat-total-players').innerText = players.length;
+      document.getElementById('stat-main-players').innerText = `${mains.length} / 5`;
+      document.getElementById('stat-bench-players').innerText = subs.length;
+      document.getElementById('stat-sub-count').innerText = subLogs.length;
+
+      const avgPace = players.length > 0 ? Math.round(players.reduce((acc, p) => acc + (p.pace || 70), 0) / players.length) : 0;
+      const avgShooting = players.length > 0 ? Math.round(players.reduce((acc, p) => acc + (p.shooting || 70), 0) / players.length) : 0;
+      const avgPassing = players.length > 0 ? Math.round(players.reduce((acc, p) => acc + (p.passing || 70), 0) / players.length) : 0;
+      const avgDribbling = players.length > 0 ? Math.round(players.reduce((acc, p) => acc + (p.dribbling || 70), 0) / players.length) : 0;
+      const avgDefending = players.length > 0 ? Math.round(players.reduce((acc, p) => acc + (p.defending || 70), 0) / players.length) : 0;
+      const avgPhysical = players.length > 0 ? Math.round(players.reduce((acc, p) => acc + (p.physical || 70), 0) / players.length) : 0;
+
+      document.getElementById('stat-avg-pace').innerText = avgPace;
+
+      // Render Attribute Bars
+      const barsContainer = document.getElementById('team-attribute-bars');
+      const attrs = [
+        { label: 'Pace (Kecepatan)', val: avgPace, color: 'bg-purple-500' },
+        { label: 'Shooting (Tendangan)', val: avgShooting, color: 'bg-rose-500' },
+        { label: 'Passing (Umpan)', val: avgPassing, color: 'bg-emerald-500' },
+        { label: 'Dribbling (Giringan)', val: avgDribbling, color: 'bg-amber-500' },
+        { label: 'Defending (Bertahan)', val: avgDefending, color: 'bg-blue-500' },
+        { label: 'Physical (Fisik)', val: avgPhysical, color: 'bg-teal-500' }
+      ];
+
+      barsContainer.innerHTML = attrs.map(a => `
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-bold">
+            <span class="text-slate-300">${a.label}</span>
+            <span class="text-slate-200">${a.val} / 99</span>
+          </div>
+          <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
+            <div class="${a.color} h-full rounded-full transition-all duration-700" style="width: ${a.val}%"></div>
+          </div>
+        </div>
+      `).join('');
+
+      // Position Counts
+      const kiper = players.filter(p => p.posisi === 'Kiper').length;
+      const anchor = players.filter(p => p.posisi === 'Anchor').length;
+      const flank = players.filter(p => p.posisi === 'Flank').length;
+      const pivot = players.filter(p => p.posisi === 'Pivot').length;
+
+      document.getElementById('position-distribution').innerHTML = `
+        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex justify-between items-center">
+          <span class="text-xs font-bold text-purple-400">Kiper</span>
+          <span class="text-sm font-extrabold text-white">${kiper}</span>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex justify-between items-center">
+          <span class="text-xs font-bold text-blue-400">Anchor</span>
+          <span class="text-sm font-extrabold text-white">${anchor}</span>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex justify-between items-center">
+          <span class="text-xs font-bold text-emerald-400">Flank</span>
+          <span class="text-sm font-extrabold text-white">${flank}</span>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex justify-between items-center">
+          <span class="text-xs font-bold text-amber-400">Pivot</span>
+          <span class="text-sm font-extrabold text-white">${pivot}</span>
+        </div>
+      `;
+    }
+
+    // SQUAD RENDER
     function renderPlayers() {
       const grid = document.getElementById('player-grid');
       if (players.length === 0) {
         grid.innerHTML = `
-          <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl text-center space-y-2">
-            <i class="fa-solid fa-users-slash text-3xl text-slate-600"></i>
-            <p class="text-xs text-slate-400 font-semibold">Belum ada data pemain di database.</p>
-            <p class="text-[10px] text-slate-500">Klik 'Tambah' untuk menginput manual nomor punggung & nama pemain.</p>
+          <div class="col-span-full p-8 bg-slate-900 border border-slate-800 rounded-3xl text-center space-y-3">
+            <i class="fa-solid fa-users-slash text-4xl text-slate-600"></i>
+            <p class="text-sm text-slate-400 font-bold">Belum ada data pemain di database.</p>
+            <p class="text-xs text-slate-500">Klik tombol 'Input Pemain Baru' untuk menambahkan pemain secara manual.</p>
           </div>
         `;
         return;
       }
 
       grid.innerHTML = players.map(p => `
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 space-y-2.5">
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-xl bg-slate-950 border border-slate-800 text-emerald-400 font-extrabold text-xs flex items-center justify-center">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3 hover:border-slate-700 transition shadow-lg">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-slate-950 border border-slate-800 text-emerald-400 font-black text-sm flex items-center justify-center shadow-inner">
                 #${p.nomor_punggung}
               </div>
               <div>
-                <h4 class="font-bold text-white text-xs">${p.nama}</h4>
-                <span class="text-[9px] font-semibold px-2 py-0.5 rounded-full ${p.posisi === 'Kiper' ? 'bg-purple-500/10 text-purple-400' : p.posisi === 'Anchor' ? 'bg-blue-500/10 text-blue-400' : 'bg-emerald-500/10 text-emerald-400'} border border-current">
+                <h4 class="font-bold text-white text-sm">${p.nama}</h4>
+                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full ${p.posisi === 'Kiper' ? 'bg-purple-500/10 text-purple-400' : p.posisi === 'Anchor' ? 'bg-blue-500/10 text-blue-400' : 'bg-emerald-500/10 text-emerald-400'} border border-current">
                   ${p.posisi}
                 </span>
               </div>
             </div>
             <div class="flex items-center gap-1">
-              <span class="text-[9px] font-bold px-2 py-0.5 rounded-md ${p.status === 'Pemain Utama' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
-                ${p.status === 'Pemain Utama' ? 'Starting 5' : 'Bench'}
-              </span>
-              <button onclick="deletePlayer('${p.id}')" class="text-slate-500 hover:text-red-400 p-1 text-xs">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
+              <button onclick="editPlayer('${p.id}')" class="text-slate-400 hover:text-emerald-400 p-1 text-xs"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="deletePlayer('${p.id}')" class="text-slate-400 hover:text-red-400 p-1 text-xs"><i class="fa-solid fa-trash-can"></i></button>
             </div>
           </div>
 
-          <div class="grid grid-cols-6 gap-1 bg-slate-950 p-1.5 rounded-xl text-center">
-            <div><span class="text-[8px] text-slate-500 block">PAC</span><span class="text-[10px] font-bold text-slate-200">${p.pace}</span></div>
-            <div><span class="text-[8px] text-slate-500 block">SHO</span><span class="text-[10px] font-bold text-slate-200">${p.shooting}</span></div>
-            <div><span class="text-[8px] text-slate-500 block">PAS</span><span class="text-[10px] font-bold text-slate-200">${p.passing}</span></div>
-            <div><span class="text-[8px] text-slate-500 block">DRI</span><span class="text-[10px] font-bold text-slate-200">${p.dribbling}</span></div>
-            <div><span class="text-[8px] text-slate-500 block">DEF</span><span class="text-[10px] font-bold text-slate-200">${p.defending}</span></div>
-            <div><span class="text-[8px] text-slate-500 block">PHY</span><span class="text-[10px] font-bold text-slate-200">${p.physical}</span></div>
+          <div class="grid grid-cols-3 gap-1.5 bg-slate-950 p-2.5 rounded-2xl text-center">
+            <div><span class="text-[9px] text-slate-500 block">PAC</span><span class="text-xs font-bold text-slate-200">${p.pace}</span></div>
+            <div><span class="text-[9px] text-slate-500 block">SHO</span><span class="text-xs font-bold text-slate-200">${p.shooting}</span></div>
+            <div><span class="text-[9px] text-slate-500 block">PAS</span><span class="text-xs font-bold text-slate-200">${p.passing}</span></div>
+            <div><span class="text-[9px] text-slate-500 block">DRI</span><span class="text-xs font-bold text-slate-200">${p.dribbling}</span></div>
+            <div><span class="text-[9px] text-slate-500 block">DEF</span><span class="text-xs font-bold text-slate-200">${p.defending}</span></div>
+            <div><span class="text-[9px] text-slate-500 block">PHY</span><span class="text-xs font-bold text-slate-200">${p.physical}</span></div>
+          </div>
+
+          <div class="flex justify-between items-center pt-1 border-t border-slate-800 text-[11px]">
+            <span class="text-slate-400 font-semibold">Status:</span>
+            <span class="font-bold px-2.5 py-0.5 rounded-md ${p.status === 'Pemain Utama' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
+              ${p.status === 'Pemain Utama' ? 'Starting 5' : 'Bench'}
+            </span>
           </div>
         </div>
       `).join('');
     }
 
+    // MATCH TIMER
     function toggleTimer() {
       const btn = document.getElementById('btn-start-timer');
       if (isTimerRunning) {
         clearInterval(timerInterval);
         isTimerRunning = false;
-        btn.innerHTML = `<i class="fa-solid fa-play"></i> Start`;
+        btn.innerHTML = `<i class="fa-solid fa-play"></i> Lanjutkan`;
       } else {
         isTimerRunning = true;
         timerInterval = setInterval(() => {
@@ -497,7 +755,7 @@
           });
           renderMatchView();
         }, 1000);
-        btn.innerHTML = `<i class="fa-solid fa-pause"></i> Pause`;
+        btn.innerHTML = `<i class="fa-solid fa-pause"></i> Jeda Timer`;
       }
     }
 
@@ -506,7 +764,7 @@
       isTimerRunning = false;
       secondsElapsed = 0;
       updateTimerDisplay();
-      document.getElementById('btn-start-timer').innerHTML = `<i class="fa-solid fa-play"></i> Start`;
+      document.getElementById('btn-start-timer').innerHTML = `<i class="fa-solid fa-play"></i> Mulai Timer`;
     }
 
     function updateTimerDisplay() {
@@ -520,6 +778,7 @@
       renderMatchView();
     }
 
+    // MATCH VIEW RENDER
     function renderMatchView() {
       const mainList = document.getElementById('main-players-list');
       const subsList = document.getElementById('subs-players-list');
@@ -534,13 +793,13 @@
         const playedMins = Math.floor(p.minutesPlayed || 0);
         const isOverLimit = playedMins >= rotationLimitMinutes;
         return `
-          <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border ${isOverLimit ? 'border-amber-500/50 bg-amber-500/5' : 'border-slate-800'}">
-            <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 font-extrabold text-xs flex items-center justify-center">#${p.nomor_punggung}</span>
+          <div class="flex items-center justify-between bg-slate-950 p-3 rounded-2xl border ${isOverLimit ? 'border-amber-500/50 bg-amber-500/5' : 'border-slate-800'}">
+            <div class="flex items-center gap-3">
+              <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 font-extrabold text-xs flex items-center justify-center">#${p.nomor_punggung}</span>
               <div>
                 <h4 class="font-bold text-white text-xs">${p.nama} (${p.posisi})</h4>
                 <span class="text-[10px] ${isOverLimit ? 'text-amber-400 font-bold' : 'text-slate-400'}">
-                  Main: ${playedMins}m ${isOverLimit ? '⚠️ Rotasi' : ''}
+                  Durasi Main: ${playedMins}m ${isOverLimit ? '⚠️ Perlu Rotasi' : ''}
                 </span>
               </div>
             </div>
@@ -549,18 +808,19 @@
       }).join('');
 
       subsList.innerHTML = subs.map(p => `
-        <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <div class="flex items-center gap-2">
-            <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-extrabold text-xs flex items-center justify-center">#${p.nomor_punggung}</span>
+        <div class="flex items-center justify-between bg-slate-950 p-3 rounded-2xl border border-slate-800">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 font-extrabold text-xs flex items-center justify-center">#${p.nomor_punggung}</span>
             <div>
               <h4 class="font-bold text-white text-xs">${p.nama} (${p.posisi})</h4>
-              <span class="text-[10px] text-slate-400">Total: ${Math.floor(p.minutesPlayed || 0)}m</span>
+              <span class="text-[10px] text-slate-400">Total Main Match: ${Math.floor(p.minutesPlayed || 0)}m</span>
             </div>
           </div>
         </div>
       `).join('');
     }
 
+    // EXPLICIT SUBSTITUTION (SIAPA DIGANTIKAN SIAPA)
     function openSubModal() {
       const mains = players.filter(p => p.status === 'Pemain Utama');
       const subs = players.filter(p => p.status === 'Pemain Cadangan');
@@ -568,13 +828,13 @@
       const outSelect = document.getElementById('sub-out-select');
       const inSelect = document.getElementById('sub-in-select');
 
-      outSelect.innerHTML = mains.map(p => `<option value="${p.id}">#${p.nomor_punggung} ${p.nama} (${p.posisi})</option>`).join('');
-      inSelect.innerHTML = subs.map(p => `<option value="${p.id}">#${p.nomor_punggung} ${p.nama} (${p.posisi})</option>`).join('');
-
       if (mains.length === 0 || subs.length === 0) {
-        alert("Pastikan ada pemain di Starting 5 dan Bangku Cadangan untuk melakukan pergantian!");
+        alert("Pastikan minimal ada 1 pemain di Starting 5 dan 1 pemain di Bangku Cadangan!");
         return;
       }
+
+      outSelect.innerHTML = mains.map(p => `<option value="${p.id}">#${p.nomor_punggung} - ${p.nama} (${p.posisi})</option>`).join('');
+      inSelect.innerHTML = subs.map(p => `<option value="${p.id}">#${p.nomor_punggung} - ${p.nama} (${p.posisi})</option>`).join('');
 
       document.getElementById('sub-modal').classList.remove('hidden');
     }
@@ -597,13 +857,20 @@
 
       const currentMatchMin = Math.floor(secondsElapsed / 60);
 
+      // Catatan Rincian "A digantikan Z"
+      const logMessage = `${playerOut.nama} (#${playerOut.nomor_punggung}) digantikan oleh ${playerIn.nama} (#${playerIn.nomor_punggung})`;
+
       subLogs.unshift({
         time: `${currentMatchMin}'`,
-        outName: `#${playerOut.nomor_punggung} ${playerOut.nama}`,
-        inName: `#${playerIn.nomor_punggung} ${playerIn.nama}`
+        outNama: playerOut.nama,
+        outNo: playerOut.nomor_punggung,
+        inNama: playerIn.nama,
+        inNo: playerIn.nomor_punggung,
+        fullText: logMessage
       });
 
       closeSubModal();
+      renderDashboardStats();
       renderPlayers();
       renderMatchView();
       renderTacticsPitch();
@@ -615,20 +882,20 @@
       if (subLogs.length === 0) return;
 
       container.innerHTML = subLogs.map(log => `
-        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
-          <span class="font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">${log.time}</span>
-          <div class="flex items-center gap-2">
-            <span class="text-red-400 font-bold"><i class="fa-solid fa-arrow-down mr-1"></i>${log.outName}</span>
-            <i class="fa-solid fa-right-left text-slate-500 text-[10px]"></i>
-            <span class="text-emerald-400 font-bold"><i class="fa-solid fa-arrow-up mr-1"></i>${log.inName}</span>
+        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
+          <span class="font-extrabold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20">${log.time}</span>
+          <div class="flex items-center gap-2 text-slate-300 font-bold">
+            <span class="text-red-400"><i class="fa-solid fa-arrow-down mr-1"></i>${log.outNama} (#${log.outNo})</span>
+            <span class="text-slate-500 text-[10px]">digantikan</span>
+            <span class="text-emerald-400"><i class="fa-solid fa-arrow-up mr-1"></i>${log.inNama} (#${log.inNo})</span>
           </div>
         </div>
       `).join('');
     }
 
+    // FORMATIONS & PITCH
     function changeFormation(val) {
       currentFormation = val;
-      document.getElementById('current-formation-label').innerText = val;
       renderTacticsPitch();
     }
 
@@ -636,7 +903,7 @@
       const pitch = document.getElementById('pitch-container');
       const mains = players.filter(p => p.status === 'Pemain Utama');
 
-      const formationPresets = {
+      const presets = {
         "1-2-1": [{top:'85%',left:'50%'}, {top:'68%',left:'50%'}, {top:'45%',left:'20%'}, {top:'45%',left:'80%'}, {top:'20%',left:'50%'}],
         "2-2": [{top:'85%',left:'50%'}, {top:'65%',left:'30%'}, {top:'65%',left:'70%'}, {top:'30%',left:'30%'}, {top:'30%',left:'70%'}],
         "4-0": [{top:'85%',left:'50%'}, {top:'65%',left:'18%'}, {top:'65%',left:'38%'}, {top:'65%',left:'62%'}, {top:'65%',left:'82%'}],
@@ -647,20 +914,21 @@
         "1-3-0": [{top:'85%',left:'50%'}, {top:'70%',left:'20%'}, {top:'70%',left:'50%'}, {top:'70%',left:'80%'}, {top:'52%',left:'50%'}]
       };
 
-      const coords = formationPresets[currentFormation] || formationPresets["1-2-1"];
+      const coords = presets[currentFormation] || presets["1-2-1"];
 
       pitch.innerHTML = mains.slice(0, 5).map((p, idx) => `
-        <div class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 transition-all duration-500 cursor-grab" style="top: ${coords[idx].top}; left: ${coords[idx].left};">
-          <div class="w-9 h-9 rounded-full bg-slate-950 border-2 border-emerald-400 text-emerald-400 font-extrabold text-xs flex items-center justify-center shadow-lg">
+        <div class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 transition-all duration-700 animated-token cursor-pointer" style="top: ${coords[idx].top}; left: ${coords[idx].left};">
+          <div class="w-10 sm:w-11 h-10 sm:h-11 rounded-full bg-slate-950 border-2 border-emerald-400 text-emerald-400 font-black text-xs sm:text-sm flex items-center justify-center shadow-2xl glow-active">
             #${p.nomor_punggung}
           </div>
-          <span class="bg-slate-950/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded border border-slate-800">
-            ${p.nama.split(' ')[0]}
+          <span class="bg-slate-950/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-800 whitespace-nowrap">
+            ${p.nama.split(' ')[0]} (${p.posisi})
           </span>
         </div>
       `).join('');
     }
 
+    // PDF EXPORT
     function exportStrategyPDF() {
       const mains = players.filter(p => p.status === 'Pemain Utama');
       const subs = players.filter(p => p.status === 'Pemain Cadangan');
@@ -671,37 +939,36 @@
       const startingTbody = document.getElementById('pdf-starting-tbody');
       startingTbody.innerHTML = mains.map(p => `
         <tr>
-          <td class="border border-slate-300 p-1.5 text-center font-bold">#${p.nomor_punggung}</td>
-          <td class="border border-slate-300 p-1.5">${p.nama}</td>
-          <td class="border border-slate-300 p-1.5 text-center">${p.posisi}</td>
-          <td class="border border-slate-300 p-1.5 text-center">${Math.floor(p.minutesPlayed || 0)} Menit</td>
+          <td class="border border-slate-300 p-2 text-center font-bold">#${p.nomor_punggung}</td>
+          <td class="border border-slate-300 p-2">${p.nama}</td>
+          <td class="border border-slate-300 p-2 text-center">${p.posisi}</td>
+          <td class="border border-slate-300 p-2 text-center">${Math.floor(p.minutesPlayed || 0)} Menit</td>
         </tr>
       `).join('');
 
       const benchTbody = document.getElementById('pdf-bench-tbody');
       benchTbody.innerHTML = subs.map(p => `
         <tr>
-          <td class="border border-slate-300 p-1.5 text-center font-bold">#${p.nomor_punggung}</td>
-          <td class="border border-slate-300 p-1.5">${p.nama}</td>
-          <td class="border border-slate-300 p-1.5 text-center">${p.posisi}</td>
-          <td class="border border-slate-300 p-1.5 text-center">${Math.floor(p.minutesPlayed || 0)} Menit</td>
+          <td class="border border-slate-300 p-2 text-center font-bold">#${p.nomor_punggung}</td>
+          <td class="border border-slate-300 p-2">${p.nama}</td>
+          <td class="border border-slate-300 p-2 text-center">${p.posisi}</td>
+          <td class="border border-slate-300 p-2 text-center">${Math.floor(p.minutesPlayed || 0)} Menit</td>
         </tr>
       `).join('');
 
       const subTbody = document.getElementById('pdf-sub-tbody');
       if (subLogs.length === 0) {
-        subTbody.innerHTML = `<tr><td colspan="3" class="border border-slate-300 p-2 text-center text-slate-500">Tidak ada pergantian pemain selama match.</td></tr>`;
+        subTbody.innerHTML = `<tr><td colspan="2" class="border border-slate-300 p-2 text-center text-slate-500">Tidak ada pergantian pemain selama match.</td></tr>`;
       } else {
         subTbody.innerHTML = subLogs.map(log => `
           <tr>
-            <td class="border border-slate-300 p-1.5 text-center font-bold">${log.time}</td>
-            <td class="border border-slate-300 p-1.5 text-red-600 font-semibold">${log.outName}</td>
-            <td class="border border-slate-300 p-1.5 text-emerald-600 font-semibold">${log.inName}</td>
+            <td class="border border-slate-300 p-2 text-center font-bold">${log.time}</td>
+            <td class="border border-slate-300 p-2 font-semibold">${log.fullText}</td>
           </tr>
         `).join('');
       }
 
-      const notes = document.getElementById('coach-notes').value || "Tidak ada catatan khusus.";
+      const notes = document.getElementById('coach-notes').value || "Tidak ada catatan strategi khusus.";
       document.getElementById('pdf-notes-content').innerText = notes;
 
       const element = document.getElementById('pdf-template');
@@ -720,9 +987,11 @@
       });
     }
 
+    // MODAL CONTROL & DATA SUBMIT
     function openPlayerModal() {
       document.getElementById('player-form').reset();
       document.getElementById('player-id').value = '';
+      document.getElementById('modal-title').innerText = 'Form Input Pemain Baru';
       document.getElementById('player-modal').classList.remove('hidden');
     }
 
@@ -730,10 +999,32 @@
       document.getElementById('player-modal').classList.add('hidden');
     }
 
+    function editPlayer(id) {
+      const p = players.find(x => x.id === id);
+      if (!p) return;
+
+      document.getElementById('player-id').value = p.id;
+      document.getElementById('player-nama').value = p.nama;
+      document.getElementById('player-no').value = p.nomor_punggung;
+      document.getElementById('player-posisi').value = p.posisi;
+      document.getElementById('player-status').value = p.status;
+      document.getElementById('attr-pace').value = p.pace || 75;
+      document.getElementById('attr-shooting').value = p.shooting || 70;
+      document.getElementById('attr-passing').value = p.passing || 72;
+      document.getElementById('attr-dribbling').value = p.dribbling || 74;
+      document.getElementById('attr-defending').value = p.defending || 68;
+      document.getElementById('attr-physical').value = p.physical || 70;
+
+      document.getElementById('modal-title').innerText = 'Edit Data Pemain';
+      document.getElementById('player-modal').classList.remove('hidden');
+    }
+
     function handlePlayerSubmit(e) {
       e.preventDefault();
-      const newPlayer = {
-        id: Date.now().toString(),
+      const existingId = document.getElementById('player-id').value;
+
+      const playerData = {
+        id: existingId || Date.now().toString(),
         nama: document.getElementById('player-nama').value,
         nomor_punggung: parseInt(document.getElementById('player-no').value),
         posisi: document.getElementById('player-posisi').value,
@@ -747,35 +1038,52 @@
         minutesPlayed: 0
       };
 
-      players.push(newPlayer);
+      if (existingId) {
+        const index = players.findIndex(p => p.id === existingId);
+        if (index !== -1) players[index] = playerData;
+      } else {
+        players.push(playerData);
+      }
+
       closePlayerModal();
+      renderDashboardStats();
       renderPlayers();
       renderMatchView();
       renderTacticsPitch();
 
-      saveToSheets(newPlayer);
+      saveToSheets(playerData, existingId ? 'updatePlayer' : 'addPlayer');
     }
 
     function deletePlayer(id) {
       if (!confirm("Hapus pemain ini dari database?")) return;
       players = players.filter(p => p.id !== id);
+      renderDashboardStats();
       renderPlayers();
       renderMatchView();
       renderTacticsPitch();
+
+      if (GAS_URL) {
+        fetch(GAS_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'deletePlayer', id: id })
+        }).catch(err => console.error(err));
+      }
     }
 
     function saveGasUrl() {
       GAS_URL = document.getElementById('gas-url-input').value;
-      alert("URL GAS berhasil diperbarui!");
+      alert("URL Google Apps Script Endpoint berhasil diperbarui!");
     }
 
-    function saveToSheets(playerData) {
+    function saveToSheets(playerData, actionType) {
       if (!GAS_URL) return;
       fetch(GAS_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'addPlayer', player: playerData })
+        body: JSON.stringify({ action: actionType, player: playerData })
       }).catch(err => console.error(err));
     }
 
@@ -786,11 +1094,11 @@
         .then(data => {
           if (Array.isArray(data) && data.length > 0) {
             players = data.map((d, i) => ({
-              id: d.id || String(i + 1),
-              nama: d.nama || "Pemain",
+              id: String(d.id || (i + 1)),
+              nama: String(d.nama || "Pemain"),
               nomor_punggung: parseInt(d.nomor_punggung) || (i + 1),
-              posisi: d.posisi || "Flank",
-              status: d.status || "Pemain Cadangan",
+              posisi: String(d.posisi || "Flank"),
+              status: String(d.status || "Pemain Cadangan"),
               pace: parseInt(d.pace) || 70,
               shooting: parseInt(d.shooting) || 70,
               passing: parseInt(d.passing) || 70,
@@ -799,6 +1107,7 @@
               physical: parseInt(d.physical) || 70,
               minutesPlayed: 0
             }));
+            renderDashboardStats();
             renderPlayers();
             renderMatchView();
             renderTacticsPitch();
