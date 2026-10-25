@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Futsal Tactical Pro - Multi-Wave & Admin Access</title>
+  <title>Futsal Tactical Pro - Bidirectional Multi-Wave Sync</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -65,7 +65,7 @@
           <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
             FUTSAL <span class="text-emerald-400">TACTICAL PRO</span>
           </h1>
-          <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Sinkronisasi Gelombang Database & Akses Admin</p>
+          <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Synchronized Multi-Wave & Realtime Database Manager</p>
         </div>
       </div>
 
@@ -325,7 +325,7 @@
             <h3 class="font-extrabold text-emerald-400 text-sm flex items-center gap-2">
               <i class="fa-solid fa-shirt"></i> PEMAIN DI LAPANGAN (GELOMBANG AKTIF)
             </h3>
-            <span class="text-xs font-bold text-slate-400" id="main-count">0 / 5 Pemain</span>
+            <span class="text-xs font-bold text-slate-400" id="main-count">0 Pemain</span>
           </div>
           <div id="main-players-list" class="space-y-2.5"></div>
         </div>
@@ -352,20 +352,26 @@
       </div>
     </section>
 
-    <!-- ================= TAB 4: TAKTIK & FORMASI MULTI-GELOMBANG ================= -->
+    <!-- ================= TAB 4: TAKTIK & FORMASI MULTI-GELOMBANG SINKRON ================= -->
     <section id="tab-tactics" class="space-y-6">
       <div class="bg-slate-900/90 p-5 rounded-3xl border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 class="text-lg font-extrabold text-white flex items-center gap-2">
             <span>Visualisasi Formasi Taktis</span>
-            <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30">Sinkron Database Gelombang</span>
+            <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30">100% Sinkron Database</span>
           </h2>
-          <p class="text-xs text-slate-400">Pilih tab Gelombang untuk menampilkan barisan pemain yang sesuai dengan database.</p>
+          <p class="text-xs text-slate-400">Klik token di lapangan atau gunakan tombol pengatur skuad untuk mengubah gelombang secara realtime.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <!-- Dynamic Wave Selector -->
-          <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800" id="wave-selector-container">
+          <!-- Tombol Kelola Gelombang Cepat -->
+          <button onclick="openWaveManagerModal()" class="admin-only hidden bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-sliders"></i>
+            <span>Kelola Skuad Gelombang <span id="current-wave-num-badge">1</span></span>
+          </button>
+
+          <!-- Wave Selector -->
+          <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button onclick="selectTacticsWave(1)" id="wave-btn-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 shadow">Gelombang 1</button>
             <button onclick="selectTacticsWave(2)" id="wave-btn-2" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">Gelombang 2</button>
             <button onclick="selectTacticsWave(3)" id="wave-btn-3" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">Gelombang 3</button>
@@ -482,6 +488,79 @@
     </div>
   </div>
 
+  <!-- ================= MODAL QUICK TOKEN EDIT & GELOMBANG ================= -->
+  <div id="quick-token-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-extrabold text-emerald-400 text-base flex items-center gap-2">
+          <i class="fa-solid fa-user-gear"></i> Pengaturan Pemain & Gelombang
+        </h3>
+        <button onclick="closeQuickTokenModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="space-y-4">
+        <input type="hidden" id="quick-player-id">
+
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 font-bold block">Pemain Terpilih:</span>
+            <h4 id="quick-player-name" class="text-sm font-extrabold text-white">#0 Nama Pemain</h4>
+          </div>
+          <span id="quick-player-pos" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Posisi</span>
+        </div>
+
+        <div>
+          <label class="text-xs text-amber-400 font-bold block mb-1">Gelombang / Status Pemain Ini:</label>
+          <select id="quick-wave-select" class="w-full bg-slate-950 border border-slate-700 text-amber-400 font-bold text-xs p-3 rounded-xl focus:outline-none focus:border-amber-500">
+            <option value="Gelombang 1 (Utama)">Gelombang 1 (Utama)</option>
+            <option value="Gelombang 2 (Pemain Kedua)">Gelombang 2 (Pemain Kedua)</option>
+            <option value="Gelombang 3 (Pemain Ketiga)">Gelombang 3 (Pemain Ketiga)</option>
+            <option value="Gelombang 4 (Pemain Keempat)">Gelombang 4 (Pemain Keempat)</option>
+            <option value="Gelombang 5 (Pemain Kelima)">Gelombang 5 (Pemain Kelima)</option>
+            <option value="🔒 Kunci (Tidak Diganti)">🔒 Kunci (Tidak Diganti / Always Play)</option>
+          </select>
+        </div>
+
+        <div class="border-t border-slate-800 pt-3">
+          <label class="text-xs text-blue-400 font-bold block mb-1">Ganti Pemain Ini Dengan (Swap):</label>
+          <select id="quick-swap-select" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-3 rounded-xl focus:outline-none focus:border-blue-500 font-bold">
+            <option value="">-- Tetap Pemain Ini --</option>
+          </select>
+        </div>
+
+        <div class="pt-2 flex gap-3">
+          <button onclick="closeQuickTokenModal()" class="flex-1 py-3 bg-slate-800 text-slate-300 text-xs font-bold rounded-xl">Batal</button>
+          <button onclick="saveQuickTokenChanges()" class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold rounded-xl shadow-lg shadow-emerald-500/20">
+            Simpan & Sync Database
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL KELOLA SKUAD GELOMBANG ================= -->
+  <div id="wave-manager-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 space-y-4 custom-scroll max-h-[85vh] overflow-y-auto shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-extrabold text-emerald-400 text-base flex items-center gap-2">
+          <i class="fa-solid fa-sliders"></i> Kelola Pemain Gelombang <span id="modal-wave-title">1</span>
+        </h3>
+        <button onclick="closeWaveManagerModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <p class="text-xs text-slate-400">Centang pemain di bawah untuk memasukkan mereka ke Gelombang ini:</p>
+
+      <div class="space-y-2 max-h-60 overflow-y-auto custom-scroll pr-1" id="wave-manager-player-list"></div>
+
+      <div class="pt-3 flex gap-3 justify-end border-t border-slate-800">
+        <button onclick="closeWaveManagerModal()" class="px-5 py-2.5 bg-slate-800 text-slate-300 text-xs font-bold rounded-xl">Batal</button>
+        <button onclick="saveWaveManagerChanges()" class="px-6 py-2.5 bg-emerald-500 text-slate-950 text-xs font-extrabold rounded-xl shadow-lg shadow-emerald-500/20">
+          Simpan Skuad Gelombang
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MODAL 1: FORM INPUT / EDIT PEMAIN (CRUD) ================= -->
   <div id="player-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 space-y-4 custom-scroll max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -560,7 +639,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL 2: FORM ROTASI EKSPLISIT ================= -->
+  <!-- ================= MODAL ROTASI INDIVIDUAL ================= -->
   <div id="sub-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -612,7 +691,7 @@
     </div>
   </div>
 
-  <!-- ================= TEMPLATE RENDER PDF EXPORT SEKALIGUS ================= -->
+  <!-- ================= TEMPLATE RENDER PDF EXPORT ================= -->
   <div id="pdf-template" class="hidden bg-white text-slate-900 p-8 space-y-6 max-w-3xl mx-auto text-xs">
     <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-center">
       <div>
@@ -806,6 +885,31 @@
       fetchFromSheets();
     });
 
+    // PARSER GELOMBANG PERSISI (TIDAK PERNAH MISAL SINKRON)
+    function getPlayerWaveNumber(status) {
+      if (!status) return 1;
+      const s = String(status).toLowerCase();
+      if (s.includes('kunci') || s.includes('lock')) return 'LOCKED';
+      if (s.includes('gelombang 1') || s.includes('utama') || s.includes('wave 1') || s.includes('starting')) return 1;
+      if (s.includes('gelombang 2') || s.includes('kedua') || s.includes('wave 2')) return 2;
+      if (s.includes('gelombang 3') || s.includes('ketiga') || s.includes('wave 3')) return 3;
+      if (s.includes('gelombang 4') || s.includes('keempat') || s.includes('wave 4')) return 4;
+      if (s.includes('gelombang 5') || s.includes('kelima') || s.includes('wave 5')) return 5;
+      
+      const match = s.match(/(\d+)/);
+      if (match) return parseInt(match[1]);
+      return 1;
+    }
+
+    function isLocked(status) {
+      return getPlayerWaveNumber(status) === 'LOCKED';
+    }
+
+    function isWave1(status) {
+      const waveNum = getPlayerWaveNumber(status);
+      return waveNum === 1 || waveNum === 'LOCKED';
+    }
+
     // ADMIN AUTHENTICATION
     function openAdminModal() {
       if (isAdmin) {
@@ -830,7 +934,7 @@
         isAdmin = true;
         closeAdminModal();
         applyAdminPermissions();
-        showToast("Login Admin Berhasil! Akses Full CRUD Aktif.", "success");
+        showToast("Login Admin Berhasil! Akses Edit Full Aktif.", "success");
       } else {
         alert("Password Admin Salah!");
       }
@@ -860,6 +964,7 @@
         document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
       }
       renderPlayers();
+      renderTacticsPitch();
     }
 
     function showToast(message, type = 'info') {
@@ -898,30 +1003,6 @@
         activeMob.classList.add('text-emerald-400');
         activeMob.classList.remove('text-slate-400');
       }
-    }
-
-    // PARSER GELOMBANG DATABASE fleksibel & SINKRON
-    function getPlayerWaveNumber(status) {
-      if (!status) return 1;
-      if (status.includes('Kunci')) return 'LOCKED';
-      if (status.includes('Gelombang 1') || status === 'Pemain Utama' || status.includes('Utama')) return 1;
-      if (status.includes('Gelombang 2') || status.includes('Kedua')) return 2;
-      if (status.includes('Gelombang 3') || status.includes('Ketiga')) return 3;
-      if (status.includes('Gelombang 4') || status.includes('Keempat')) return 4;
-      if (status.includes('Gelombang 5') || status.includes('Kelima')) return 5;
-      
-      const match = status.match(/Gelombang\s*(\d+)/i);
-      if (match) return parseInt(match[1]);
-      return 1;
-    }
-
-    function isLocked(status) {
-      return status && status.includes('Kunci');
-    }
-
-    function isWave1(status) {
-      const waveNum = getPlayerWaveNumber(status);
-      return waveNum === 1 || waveNum === 'LOCKED';
     }
 
     // DATABASE READ
@@ -986,7 +1067,7 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: actionType, player: playerData })
         });
-        showToast("Data tersimpan ke Spreadsheet!", "success");
+        showToast("Data tersimpan & disinkronkan ke Spreadsheet!", "success");
       } catch (err) {
         console.error("Save error:", err);
       }
@@ -1154,13 +1235,272 @@
         showToast(`${p.nama_panggilan || p.nama} dikembalikan ke Gelombang 1`, "info");
       } else {
         p.status = '🔒 Kunci (Tidak Diganti)';
-        showToast(`${p.nama_panggilan || p.nama} DIKUNCI (Tidak Pernah Diganti)`, "success");
+        showToast(`${p.nama_panggilan || p.nama} DIKUNCI (Selalu Tampil)`, "success");
       }
       renderDashboardStats();
       renderPlayers();
       renderMatchView();
       renderTacticsPitch();
       saveToSheets(p, 'updatePlayer');
+    }
+
+    // TAKTIK & FORMASI MULTI-GELOMBANG SINKRON LAPANGAN
+    function selectTacticsWave(waveNum) {
+      activeTacticsWave = waveNum;
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.getElementById(`wave-btn-${i}`);
+        if (btn) {
+          if (i === waveNum) {
+            btn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 shadow';
+          } else {
+            btn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white';
+          }
+        }
+      }
+      const numBadge = document.getElementById('current-wave-num-badge');
+      if (numBadge) numBadge.innerText = waveNum;
+
+      renderTacticsPitch();
+    }
+
+    function changeFormation(val) {
+      currentFormation = val;
+      renderTacticsPitch();
+    }
+
+    function renderTacticsPitch() {
+      const pitch = document.getElementById('pitch-container');
+      
+      // Filter SINKRON DATABASE:
+      // Ambil pemain yang terdaftar di Gelombang aktif OR bertanda 🔒 Kunci
+      const lockedPlayers = players.filter(p => isLocked(p.status));
+      const waveSpecificPlayers = players.filter(p => !isLocked(p.status) && getPlayerWaveNumber(p.status) === activeTacticsWave);
+      
+      const combinedActivePlayers = [...lockedPlayers, ...waveSpecificPlayers];
+
+      const presetSlots = formationPresets[currentFormation] || formationPresets["1-2-1"];
+      const assignedTokens = assignPlayersToSlots(combinedActivePlayers, presetSlots);
+
+      if (assignedTokens.length === 0) {
+        pitch.innerHTML = `<div class="absolute inset-0 flex items-center justify-center text-amber-300 font-bold text-xs bg-slate-950/70 rounded-2xl p-4 text-center">
+          Belum ada pemain yang diatur pada Gelombang ${activeTacticsWave} di Database.<br>Gunakan tombol "Kelola Skuad Gelombang" untuk memasukkan pemain.
+        </div>`;
+        return;
+      }
+
+      pitch.innerHTML = assignedTokens.map(at => {
+        const displayName = at.player.nama_panggilan || at.player.nama;
+        const isPlayerLocked = isLocked(at.player.status);
+        
+        return `
+          <div id="token-${at.player.id}" onclick="handleTokenClick('${at.player.id}')" class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 draggable-token group" style="top: ${at.slot.top}; left: ${at.slot.left}; z-index: 20;">
+            <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-slate-950 border-2 ${isPlayerLocked ? 'border-purple-400 text-purple-400' : 'border-emerald-400 text-emerald-400'} font-black text-xs sm:text-sm flex items-center justify-center shadow-2xl glow-active relative">
+              #${at.player.nomor_punggung}
+              ${isPlayerLocked ? '<span class="absolute -top-1 -right-1 bg-purple-600 text-white text-[8px] p-0.5 rounded-full"><i class="fa-solid fa-lock"></i></span>' : ''}
+            </div>
+            <span class="bg-slate-950/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-800 whitespace-nowrap shadow-md flex items-center gap-1 group-hover:border-emerald-400 transition">
+              ${isPlayerLocked ? '🔒 ' : ''}${displayName} (${at.player.posisi})
+            </span>
+          </div>
+        `;
+      }).join('');
+
+      assignedTokens.forEach(at => {
+        const tokenEl = document.getElementById(`token-${at.player.id}`);
+        if (tokenEl && isAdmin) makeTokenDraggable(tokenEl);
+      });
+    }
+
+    // MODAL EDIT TOKEN & GELOMBANG DARI LAPANGAN
+    function handleTokenClick(playerId) {
+      if (!isAdmin) {
+        showToast("Mode Lihat Saja. Login Admin (Password: FutsalDT123) untuk mengubah Gelombang.", "info");
+        return;
+      }
+
+      const p = players.find(x => x.id === playerId);
+      if (!p) return;
+
+      document.getElementById('quick-player-id').value = p.id;
+      document.getElementById('quick-player-name').innerText = `#${p.nomor_punggung} ${p.nama_panggilan || p.nama}`;
+      document.getElementById('quick-player-pos').innerText = p.posisi;
+      document.getElementById('quick-wave-select').value = p.status;
+
+      // Populate Swap List
+      const swapSelect = document.getElementById('quick-swap-select');
+      swapSelect.innerHTML = '<option value="">-- Tetap Pemain Ini --</option>' +
+        players.filter(x => x.id !== p.id).map(x => `<option value="${x.id}">#${x.nomor_punggung} - ${x.nama_panggilan || x.nama} (${x.posisi}) - ${x.status}</option>`).join('');
+
+      document.getElementById('quick-token-modal').classList.remove('hidden');
+    }
+
+    function closeQuickTokenModal() {
+      document.getElementById('quick-token-modal').classList.add('hidden');
+    }
+
+    function saveQuickTokenChanges() {
+      const pid = document.getElementById('quick-player-id').value;
+      const targetWaveStatus = document.getElementById('quick-wave-select').value;
+      const swapTargetId = document.getElementById('quick-swap-select').value;
+
+      const p = players.find(x => x.id === pid);
+      if (!p) return;
+
+      if (swapTargetId) {
+        const pSwap = players.find(x => x.id === swapTargetId);
+        if (pSwap) {
+          const oldPStatus = p.status;
+          p.status = pSwap.status;
+          pSwap.status = oldPStatus;
+          saveToSheets(pSwap, 'updatePlayer');
+        }
+      } else {
+        p.status = targetWaveStatus;
+      }
+
+      closeQuickTokenModal();
+      renderDashboardStats();
+      renderPlayers();
+      renderMatchView();
+      renderTacticsPitch();
+
+      saveToSheets(p, 'updatePlayer');
+      showToast(`Status ${p.nama_panggilan || p.nama} Berhasil Diperbarui!`, "success");
+    }
+
+    // MODAL KELOLA SKUAD GELOMBANG (MASS EDIT WAVE)
+    function openWaveManagerModal() {
+      if (!isAdmin) return;
+      document.getElementById('modal-wave-title').innerText = activeTacticsWave;
+
+      const container = document.getElementById('wave-manager-player-list');
+      const waveLabel = `Gelombang ${activeTacticsWave}`;
+
+      container.innerHTML = players.map(p => {
+        const isInWave = getPlayerWaveNumber(p.status) === activeTacticsWave;
+        return `
+          <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" id="wave-check-${p.id}" value="${p.id}" ${isInWave ? 'checked' : ''} class="w-4 h-4 accent-emerald-500 rounded">
+              <label for="wave-check-${p.id}" class="text-xs font-bold text-white cursor-pointer">
+                #${p.nomor_punggung} ${p.nama_panggilan || p.nama} (${p.posisi})
+              </label>
+            </div>
+            <span class="text-[10px] text-slate-400">${p.status}</span>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('wave-manager-modal').classList.remove('hidden');
+    }
+
+    function closeWaveManagerModal() {
+      document.getElementById('wave-manager-modal').classList.add('hidden');
+    }
+
+    function saveWaveManagerChanges() {
+      if (!isAdmin) return;
+
+      const targetWaveStatus = `Gelombang ${activeTacticsWave} (Pemain)`;
+
+      players.forEach(p => {
+        const checkbox = document.getElementById(`wave-check-${p.id}`);
+        if (checkbox) {
+          if (checkbox.checked) {
+            if (getPlayerWaveNumber(p.status) !== activeTacticsWave && !isLocked(p.status)) {
+              p.status = targetWaveStatus;
+              saveToSheets(p, 'updatePlayer');
+            }
+          } else {
+            if (getPlayerWaveNumber(p.status) === activeTacticsWave && !isLocked(p.status)) {
+              p.status = 'Gelombang 2 (Pemain Kedua)';
+              saveToSheets(p, 'updatePlayer');
+            }
+          }
+        }
+      });
+
+      closeWaveManagerModal();
+      renderDashboardStats();
+      renderPlayers();
+      renderMatchView();
+      renderTacticsPitch();
+
+      showToast(`Skuad Gelombang ${activeTacticsWave} Berhasil Diperbarui & Disinkronkan!`, "success");
+    }
+
+    function assignPlayersToSlots(mains, presetSlots) {
+      let pool = [...mains];
+      let assigned = new Array(5).fill(null);
+
+      // Kiper
+      let kiperIdx = pool.findIndex(p => p.posisi === 'Kiper');
+      if (kiperIdx !== -1) {
+        assigned[0] = { player: pool[kiperIdx], slot: presetSlots[0] };
+        pool.splice(kiperIdx, 1);
+      }
+
+      // Pivot
+      let pivotIdx = pool.findIndex(p => p.posisi === 'Pivot');
+      if (pivotIdx !== -1 && !assigned[4]) {
+        assigned[4] = { player: pool[pivotIdx], slot: presetSlots[4] };
+        pool.splice(pivotIdx, 1);
+      }
+
+      // Anchor
+      let anchorIndices = [];
+      pool.forEach((p, idx) => { if (p.posisi === 'Anchor') anchorIndices.push(idx); });
+      anchorIndices.reverse().forEach(idx => {
+        let emptyDef = [1, 2, 3].find(s => !assigned[s]);
+        if (emptyDef !== undefined) {
+          assigned[emptyDef] = { player: pool[idx], slot: presetSlots[emptyDef] };
+          pool.splice(idx, 1);
+        }
+      });
+
+      for (let i = 0; i < 5; i++) {
+        if (!assigned[i] && pool.length > 0) {
+          assigned[i] = { player: pool.shift(), slot: presetSlots[i] };
+        }
+      }
+
+      return assigned.filter(x => x !== null);
+    }
+
+    function makeTokenDraggable(tokenEl) {
+      let isDragging = false;
+      let startX, startY, startTopPct, startLeftPct;
+
+      tokenEl.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        tokenEl.setPointerCapture(e.pointerId);
+        tokenEl.style.zIndex = '50';
+        startX = e.clientX; startY = e.clientY;
+
+        const pitchRect = document.getElementById('pitch-container').getBoundingClientRect();
+        const tokenRect = tokenEl.getBoundingClientRect();
+        startLeftPct = ((tokenRect.left + tokenRect.width/2 - pitchRect.left) / pitchRect.width) * 100;
+        startTopPct = ((tokenRect.top + tokenRect.height/2 - pitchRect.top) / pitchRect.height) * 100;
+      });
+
+      tokenEl.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const pitchRect = document.getElementById('pitch-container').getBoundingClientRect();
+        const deltaX = ((e.clientX - startX) / pitchRect.width) * 100;
+        const deltaY = ((e.clientY - startY) / pitchRect.height) * 100;
+
+        tokenEl.style.left = `${Math.max(5, Math.min(95, startLeftPct + deltaX))}%`;
+        tokenEl.style.top = `${Math.max(5, Math.min(95, startTopPct + deltaY))}%`;
+      });
+
+      const stopDrag = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        tokenEl.style.zIndex = '20';
+      };
+
+      tokenEl.addEventListener('pointerup', stopDrag);
+      tokenEl.addEventListener('pointercancel', stopDrag);
     }
 
     // TIMER MATCH
@@ -1324,7 +1664,7 @@
       const oldInStatus = playerIn.status;
 
       playerOut.status = oldInStatus.includes('Gelombang') ? oldInStatus : 'Gelombang 2 (Pemain Kedua)';
-      playerIn.status = isLocked(oldOutStatus) ? 'Gelombang 1 (Utama)' : 'Gelombang 1 (Utama)';
+      playerIn.status = 'Gelombang 1 (Utama)';
 
       const currentMatchMin = Math.floor(secondsElapsed / 60);
       const pOutName = playerOut.nama_panggilan || playerOut.nama;
@@ -1349,6 +1689,9 @@
       renderTacticsPitch();
       renderSubLogList();
 
+      saveToSheets(playerOut, 'updatePlayer');
+      saveToSheets(playerIn, 'updatePlayer');
+
       showToast(`Rotasi Berhasil: ${pOutName} ➔ ${pInName}`, "success");
     }
 
@@ -1369,8 +1712,8 @@
 
       if (!confirm(`Tukar pemain Gelombang ${targetWaveNum} ke lapangan? (Pemain bertanda 🔒 KUNCI tetap di lapangan)`)) return;
 
-      g1NonLocked.forEach(p => { p.status = 'Gelombang 3 (Pemain Ketiga)'; });
-      wavePlayers.forEach(p => { p.status = 'Gelombang 1 (Utama)'; });
+      g1NonLocked.forEach(p => { p.status = 'Gelombang 3 (Pemain Ketiga)'; saveToSheets(p, 'updatePlayer'); });
+      wavePlayers.forEach(p => { p.status = 'Gelombang 1 (Utama)'; saveToSheets(p, 'updatePlayer'); });
 
       const currentMatchMin = Math.floor(secondsElapsed / 60);
       subLogs.unshift({
@@ -1409,151 +1752,7 @@
       `).join('');
     }
 
-    // TAKTIK & FORMASI MULTI-GELOMBANG SINKRON DATABASE
-    function selectTacticsWave(waveNum) {
-      activeTacticsWave = waveNum;
-      for (let i = 1; i <= 5; i++) {
-        const btn = document.getElementById(`wave-btn-${i}`);
-        if (btn) {
-          if (i === waveNum) {
-            btn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 shadow';
-          } else {
-            btn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white';
-          }
-        }
-      }
-      renderTacticsPitch();
-    }
-
-    function changeFormation(val) {
-      currentFormation = val;
-      renderTacticsPitch();
-    }
-
-    function renderTacticsPitch() {
-      const pitch = document.getElementById('pitch-container');
-      
-      // Filter SINKRON DATABASE:
-      // Ambil pemain yang terdaftar di Gelombang aktif OR bertanda 🔒 Kunci
-      const lockedPlayers = players.filter(p => isLocked(p.status));
-      const waveSpecificPlayers = players.filter(p => !isLocked(p.status) && getPlayerWaveNumber(p.status) === activeTacticsWave);
-      
-      const combinedActivePlayers = [...lockedPlayers, ...waveSpecificPlayers];
-
-      const presetSlots = formationPresets[currentFormation] || formationPresets["1-2-1"];
-      const assignedTokens = assignPlayersToSlots(combinedActivePlayers, presetSlots);
-
-      if (assignedTokens.length === 0) {
-        pitch.innerHTML = `<div class="absolute inset-0 flex items-center justify-center text-amber-300 font-bold text-xs bg-slate-950/60 rounded-2xl">Tidak ada pemain yang diatur pada Gelombang ${activeTacticsWave} di Database.</div>`;
-        return;
-      }
-
-      pitch.innerHTML = assignedTokens.map(at => {
-        const displayName = at.player.nama_panggilan || at.player.nama;
-        const isPlayerLocked = isLocked(at.player.status);
-        
-        return `
-          <div id="token-${at.player.id}" onclick="handleTokenClick('${at.player.id}')" class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 draggable-token group" style="top: ${at.slot.top}; left: ${at.slot.left}; z-index: 20;">
-            <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-slate-950 border-2 ${isPlayerLocked ? 'border-purple-400 text-purple-400' : 'border-emerald-400 text-emerald-400'} font-black text-xs sm:text-sm flex items-center justify-center shadow-2xl glow-active relative">
-              #${at.player.nomor_punggung}
-              ${isPlayerLocked ? '<span class="absolute -top-1 -right-1 bg-purple-600 text-white text-[8px] p-0.5 rounded-full"><i class="fa-solid fa-lock"></i></span>' : ''}
-            </div>
-            <span class="bg-slate-950/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-800 whitespace-nowrap shadow-md flex items-center gap-1 group-hover:border-emerald-400 transition">
-              ${isPlayerLocked ? '🔒 ' : ''}${displayName} (${at.player.posisi})
-            </span>
-          </div>
-        `;
-      }).join('');
-
-      assignedTokens.forEach(at => {
-        const tokenEl = document.getElementById(`token-${at.player.id}`);
-        if (tokenEl && isAdmin) makeTokenDraggable(tokenEl);
-      });
-    }
-
-    function handleTokenClick(playerId) {
-      if (isAdmin) {
-        openSubModal(playerId);
-      } else {
-        showToast("Mode Lihat Saja. Login Admin (FutsalDT123) untuk mengedit.", "info");
-      }
-    }
-
-    function assignPlayersToSlots(mains, presetSlots) {
-      let pool = [...mains];
-      let assigned = new Array(5).fill(null);
-
-      // Kiper
-      let kiperIdx = pool.findIndex(p => p.posisi === 'Kiper');
-      if (kiperIdx !== -1) {
-        assigned[0] = { player: pool[kiperIdx], slot: presetSlots[0] };
-        pool.splice(kiperIdx, 1);
-      }
-
-      // Pivot
-      let pivotIdx = pool.findIndex(p => p.posisi === 'Pivot');
-      if (pivotIdx !== -1 && !assigned[4]) {
-        assigned[4] = { player: pool[pivotIdx], slot: presetSlots[4] };
-        pool.splice(pivotIdx, 1);
-      }
-
-      // Anchor
-      let anchorIndices = [];
-      pool.forEach((p, idx) => { if (p.posisi === 'Anchor') anchorIndices.push(idx); });
-      anchorIndices.reverse().forEach(idx => {
-        let emptyDef = [1, 2, 3].find(s => !assigned[s]);
-        if (emptyDef !== undefined) {
-          assigned[emptyDef] = { player: pool[idx], slot: presetSlots[emptyDef] };
-          pool.splice(idx, 1);
-        }
-      });
-
-      for (let i = 0; i < 5; i++) {
-        if (!assigned[i] && pool.length > 0) {
-          assigned[i] = { player: pool.shift(), slot: presetSlots[i] };
-        }
-      }
-
-      return assigned.filter(x => x !== null);
-    }
-
-    function makeTokenDraggable(tokenEl) {
-      let isDragging = false;
-      let startX, startY, startTopPct, startLeftPct;
-
-      tokenEl.addEventListener('pointerdown', (e) => {
-        isDragging = true;
-        tokenEl.setPointerCapture(e.pointerId);
-        tokenEl.style.zIndex = '50';
-        startX = e.clientX; startY = e.clientY;
-
-        const pitchRect = document.getElementById('pitch-container').getBoundingClientRect();
-        const tokenRect = tokenEl.getBoundingClientRect();
-        startLeftPct = ((tokenRect.left + tokenRect.width/2 - pitchRect.left) / pitchRect.width) * 100;
-        startTopPct = ((tokenRect.top + tokenRect.height/2 - pitchRect.top) / pitchRect.height) * 100;
-      });
-
-      tokenEl.addEventListener('pointermove', (e) => {
-        if (!isDragging) return;
-        const pitchRect = document.getElementById('pitch-container').getBoundingClientRect();
-        const deltaX = ((e.clientX - startX) / pitchRect.width) * 100;
-        const deltaY = ((e.clientY - startY) / pitchRect.height) * 100;
-
-        tokenEl.style.left = `${Math.max(5, Math.min(95, startLeftPct + deltaX))}%`;
-        tokenEl.style.top = `${Math.max(5, Math.min(95, startTopPct + deltaY))}%`;
-      });
-
-      const stopDrag = () => {
-        if (!isDragging) return;
-        isDragging = false;
-        tokenEl.style.zIndex = '20';
-      };
-
-      tokenEl.addEventListener('pointerup', stopDrag);
-      tokenEl.addEventListener('pointercancel', stopDrag);
-    }
-
-    // EXPORT PDF SEKALIGUS
+    // EXPORT PDF
     function exportStrategyPDF() {
       const locked = players.filter(p => isLocked(p.status));
       const g1 = players.filter(p => getPlayerWaveNumber(p.status) === 1);
