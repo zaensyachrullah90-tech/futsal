@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Futsal Tactical Pro - Multi-Wave & Locked Player Manager</title>
+  <title>Futsal Tactical Pro - Multi-Wave & Admin Access</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -40,9 +40,7 @@
       cursor: pointer;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
-    .draggable-token:active {
-      cursor: grabbing;
-    }
+    .draggable-token:active { cursor: grabbing; }
 
     .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
@@ -55,8 +53,8 @@
   <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 pointer-events-none"></div>
 
   <!-- ================= NAVBAR / HEADER ================= -->
-  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3.5">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
+  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
       
       <!-- Logo & Brand -->
       <div class="flex items-center gap-3">
@@ -67,7 +65,7 @@
           <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
             FUTSAL <span class="text-emerald-400">TACTICAL PRO</span>
           </h1>
-          <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Rotasi Gelombang, Pemain Kunci (🔒 Tidak Diganti) & Quick Swap</p>
+          <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Sinkronisasi Gelombang Database & Akses Admin</p>
         </div>
       </div>
 
@@ -90,37 +88,49 @@
         </button>
       </nav>
 
-      <!-- Action Export PDF -->
-      <button onclick="exportStrategyPDF()" class="bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-rose-900/30">
-        <i class="fa-solid fa-file-pdf"></i>
-        <span>Export PDF Sekaligus</span>
-      </button>
+      <!-- Action Area: Admin Login & Export -->
+      <div class="flex items-center gap-2">
+        <button id="admin-toggle-btn" onclick="openAdminModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 text-xs font-bold px-3 py-2.5 rounded-xl transition flex items-center gap-1.5">
+          <i class="fa-solid fa-lock text-sm" id="admin-icon"></i>
+          <span id="admin-btn-label" class="hidden sm:inline">Lihat Saja</span>
+        </button>
+
+        <button onclick="exportStrategyPDF()" class="bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-rose-900/30">
+          <i class="fa-solid fa-file-pdf"></i>
+          <span class="hidden sm:inline">Export PDF</span>
+        </button>
+      </div>
     </div>
   </header>
 
   <!-- ================= KONTEN UTAMA ================= -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 pb-24 md:pb-8">
 
-    <!-- Status Koneksi Database Banner -->
-    <div id="db-status-banner" class="bg-slate-900/90 border border-slate-800 rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
+    <!-- Status Koneksi & Mode Akses Banner -->
+    <div id="db-status-banner" class="bg-slate-900/90 border border-slate-800 rounded-2xl px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between text-xs gap-2">
       <div class="flex items-center gap-2">
         <span id="db-status-badge" class="font-bold text-amber-400 flex items-center gap-1.5">
-          <i class="fa-solid fa-spinner animate-spin"></i> Menghubungkan ke Database...
+          <i class="fa-solid fa-spinner animate-spin"></i> Membaca Database...
         </span>
       </div>
-      <button onclick="fetchFromSheets()" class="text-slate-400 hover:text-emerald-400 font-bold transition flex items-center gap-1">
-        <i class="fa-solid fa-rotate text-xs"></i> Sync Ulang
-      </button>
+      <div class="flex items-center gap-3">
+        <span id="access-mode-badge" class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">
+          <i class="fa-solid fa-eye mr-1"></i> Mode: Publik (Lihat Saja)
+        </span>
+        <button onclick="fetchFromSheets()" class="text-slate-400 hover:text-emerald-400 font-bold transition flex items-center gap-1">
+          <i class="fa-solid fa-rotate text-xs"></i> Sync Ulang
+        </button>
+      </div>
     </div>
 
     <!-- ================= TAB 1: DASHBOARD KOMPREHENSIF ================= -->
     <section id="tab-dashboard" class="hidden space-y-6">
       <div class="bg-gradient-to-r from-slate-900 via-slate-900/90 to-emerald-950/40 p-6 rounded-3xl border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xl">
         <div>
-          <h2 class="text-xl sm:text-2xl font-extrabold text-white">Dashboard Analisis Gelombang & Rotasi</h2>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1">Pemetaan pasangan pengganti (misal: Zaen ➔ Dailami), status kunci (🔒), dan statistik tim.</p>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-white">Dashboard Analisis Gelombang & Skuad</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">Pemetaan pasangan pengganti, status kunci (🔒), dan statistik tim.</p>
         </div>
-        <button onclick="openPlayerModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-5 py-3 rounded-2xl transition flex items-center gap-2 shadow-lg shadow-emerald-500/20">
+        <button onclick="openPlayerModal()" class="admin-only hidden bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-5 py-3 rounded-2xl transition flex items-center gap-2 shadow-lg shadow-emerald-500/20">
           <i class="fa-solid fa-user-plus text-sm"></i> Input Pemain Baru
         </button>
       </div>
@@ -142,7 +152,7 @@
             <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center"><i class="fa-solid fa-lock text-sm"></i></div>
           </div>
           <div class="text-3xl font-extrabold text-purple-400" id="stat-locked-players">0</div>
-          <p class="text-[10px] text-slate-500">Tidak pernah diganti</p>
+          <p class="text-[10px] text-slate-500">Selalu Tampil</p>
         </div>
 
         <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-2 relative overflow-hidden">
@@ -150,8 +160,8 @@
             <span class="text-xs font-bold text-slate-400 uppercase">Gelombang 1</span>
             <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-shirt text-sm"></i></div>
           </div>
-          <div class="text-3xl font-extrabold text-blue-400" id="stat-main-players">0 / 5</div>
-          <p class="text-[10px] text-slate-500">Starting 5 di lapangan</p>
+          <div class="text-3xl font-extrabold text-blue-400" id="stat-main-players">0</div>
+          <p class="text-[10px] text-slate-500">Starting Line-Up</p>
         </div>
 
         <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-2 relative overflow-hidden">
@@ -160,7 +170,7 @@
             <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-bolt text-sm"></i></div>
           </div>
           <div class="text-3xl font-extrabold text-emerald-400" id="stat-team-power">0</div>
-          <p class="text-[10px] text-slate-500">Rata-rata statistik</p>
+          <p class="text-[10px] text-slate-500">Rata-rata atribut</p>
         </div>
 
         <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-2 relative overflow-hidden">
@@ -173,10 +183,10 @@
         </div>
       </div>
 
-      <!-- Table Pemetaan Pasangan Rotasi Spesifik -->
+      <!-- Table Pemetaan Pasangan Rotasi -->
       <div class="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 space-y-4">
         <h3 class="font-extrabold text-base text-white flex items-center gap-2">
-          <i class="fa-solid fa-user-gear text-emerald-400"></i> PEMETAAN PASANGAN ROTASI (Pemain Utama ➔ Pasangan Pengganti)
+          <i class="fa-solid fa-user-gear text-emerald-400"></i> PEMETAAN PASANGAN ROTASI (Utama ➔ Pengganti)
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="rotation-pairs-grid"></div>
       </div>
@@ -197,8 +207,8 @@
             <div class="grid grid-cols-2 gap-3" id="position-distribution"></div>
           </div>
           <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-xs text-slate-400 space-y-1 mt-4">
-            <span class="font-bold text-emerald-400 block"><i class="fa-solid fa-lightbulb mr-1"></i> Instruksi Pelatih:</span>
-            <p>Pemain bertanda 🔒 **Kunci** tidak akan terpengaruh saat rotasi gelombang dilakukan.</p>
+            <span class="font-bold text-emerald-400 block"><i class="fa-solid fa-shield mr-1"></i> Catatan Keamanan:</span>
+            <p>Akses perubahan data (CRUD) memerlukan Login Admin dengan password <code class="text-amber-400 font-mono">FutsalDT123</code>.</p>
           </div>
         </div>
       </div>
@@ -208,10 +218,10 @@
     <section id="tab-squad" class="hidden space-y-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/80 p-5 rounded-3xl border border-slate-800">
         <div>
-          <h2 class="text-lg font-extrabold text-white">Management Database Pemain (CRUD)</h2>
-          <p class="text-xs text-slate-400">Atur Gelombang (1, 2, 3, 4), Status Kunci (🔒 Tidak Diganti), & Pasangan Pengganti</p>
+          <h2 class="text-lg font-extrabold text-white">Management Database Pemain</h2>
+          <p class="text-xs text-slate-400">Atur Gelombang (1, 2, 3, 4, 5), Status Kunci (🔒), & Pasangan Pengganti</p>
         </div>
-        <button onclick="openPlayerModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-emerald-500/20">
+        <button onclick="openPlayerModal()" class="admin-only hidden bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-emerald-500/20">
           <i class="fa-solid fa-user-plus"></i> Input Pemain Baru
         </button>
       </div>
@@ -225,12 +235,13 @@
         <div class="flex items-center gap-2 w-full sm:w-auto">
           <label class="text-xs text-slate-400 font-bold whitespace-nowrap">Filter Status:</label>
           <select id="filter-package-select" onchange="filterPlayerTable()" class="w-full sm:w-auto bg-slate-950 border border-slate-700 text-emerald-400 text-xs font-bold rounded-xl px-3 py-2 focus:outline-none">
-            <option value="ALL">Semua Gelombang & Status</option>
+            <option value="ALL">Semua Status & Gelombang</option>
             <option value="🔒 Kunci (Tidak Diganti)">🔒 Kunci (Tidak Diganti)</option>
             <option value="Gelombang 1">Gelombang 1 (Utama)</option>
             <option value="Gelombang 2">Gelombang 2 (Pemain Kedua)</option>
             <option value="Gelombang 3">Gelombang 3 (Pemain Ketiga)</option>
             <option value="Gelombang 4">Gelombang 4 (Pemain Keempat)</option>
+            <option value="Gelombang 5">Gelombang 5 (Pemain Kelima)</option>
           </select>
         </div>
       </div>
@@ -239,7 +250,7 @@
       <div class="bg-slate-900/90 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
         <div class="p-4 border-b border-slate-800 flex justify-between items-center">
           <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
-            <i class="fa-solid fa-table-list text-emerald-400"></i> TABEL DATABASE PEMAIN & STATUS KUNCI
+            <i class="fa-solid fa-table-list text-emerald-400"></i> TABEL DATABASE PEMAIN & GELOMBANG
           </h3>
           <span class="text-xs text-slate-400 font-bold" id="table-player-count">0 Pemain</span>
         </div>
@@ -254,7 +265,7 @@
                 <th class="p-3.5 text-center">GELOMBANG / STATUS</th>
                 <th class="p-3.5">PASANGAN PENGGANTI</th>
                 <th class="p-3.5 text-center">PWR</th>
-                <th class="p-3.5 text-center">AKSI CRUD</th>
+                <th class="p-3.5 text-center admin-only hidden">AKSI CRUD</th>
               </tr>
             </thead>
             <tbody id="player-table-body" class="divide-y divide-slate-800 text-slate-200 font-semibold"></tbody>
@@ -296,10 +307,10 @@
       </div>
 
       <!-- Action Button Form Pergantian -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="admin-only hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
         <button onclick="openSubModal()" class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm py-4 rounded-2xl transition flex items-center justify-center gap-3 shadow-xl shadow-amber-500/20 glow-active">
           <i class="fa-solid fa-arrows-rotate text-lg"></i>
-          <span>ROTASI SATU PEMAIN (MISAL: ZAEN ➔ DAILAMI)</span>
+          <span>ROTASI SATU PEMAIN (EKSPLISIT SWAP)</span>
         </button>
 
         <button onclick="executeWaveSwap(2)" class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black text-sm py-4 rounded-2xl transition flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20">
@@ -312,7 +323,7 @@
         <div class="bg-slate-900/90 p-5 rounded-3xl border border-slate-800 space-y-4">
           <div class="flex justify-between items-center border-b border-slate-800 pb-3">
             <h3 class="font-extrabold text-emerald-400 text-sm flex items-center gap-2">
-              <i class="fa-solid fa-shirt"></i> PEMAIN DI LAPANGAN (STARTING 5 / GELOMBANG ACTIVE)
+              <i class="fa-solid fa-shirt"></i> PEMAIN DI LAPANGAN (GELOMBANG AKTIF)
             </h3>
             <span class="text-xs font-bold text-slate-400" id="main-count">0 / 5 Pemain</span>
           </div>
@@ -322,7 +333,7 @@
         <div class="bg-slate-900/90 p-5 rounded-3xl border border-slate-800 space-y-4">
           <div class="flex justify-between items-center border-b border-slate-800 pb-3">
             <h3 class="font-extrabold text-amber-400 text-sm flex items-center gap-2">
-              <i class="fa-solid fa-chair"></i> BANGKU CADANGAN (READY FOR SWAP)
+              <i class="fa-solid fa-chair"></i> BANGKU CADANGAN
             </h3>
             <span class="text-xs font-bold text-slate-400" id="subs-count">0 Pemain</span>
           </div>
@@ -333,7 +344,7 @@
       <!-- Log Pergantian -->
       <div class="bg-slate-900/90 p-6 rounded-3xl border border-slate-800 space-y-4">
         <h3 class="font-extrabold text-white text-sm flex items-center gap-2 border-b border-slate-800 pb-3">
-          <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i> LOG RIWAYAT PERGANTIAN PEMAIN & MENIT
+          <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i> LOG RIWAYAT PERGANTIAN PEMAIN
         </h3>
         <div class="space-y-2.5 max-h-60 overflow-y-auto custom-scroll pr-1" id="sub-log-list">
           <p class="text-center text-xs text-slate-500 py-4">Belum ada catatan pergantian pemain dalam match ini.</p>
@@ -341,24 +352,25 @@
       </div>
     </section>
 
-    <!-- ================= TAB 4: TAKTIK & FORMASI MULTI-GELOMBANG (INTERAKTIF) ================= -->
+    <!-- ================= TAB 4: TAKTIK & FORMASI MULTI-GELOMBANG ================= -->
     <section id="tab-tactics" class="space-y-6">
       <div class="bg-slate-900/90 p-5 rounded-3xl border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 class="text-lg font-extrabold text-white flex items-center gap-2">
             <span>Visualisasi Formasi Taktis</span>
-            <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30">Klik Token Untuk Ganti Pemain</span>
+            <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30">Sinkron Database Gelombang</span>
           </h2>
-          <p class="text-xs text-slate-400">Klik token pemain untuk mengganti 1 orang secara langsung atau mengunci status 🔒 **Tidak Diganti**.</p>
+          <p class="text-xs text-slate-400">Pilih tab Gelombang untuk menampilkan barisan pemain yang sesuai dengan database.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <!-- Wave Selector Tabs Dynamic -->
-          <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <!-- Dynamic Wave Selector -->
+          <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800" id="wave-selector-container">
             <button onclick="selectTacticsWave(1)" id="wave-btn-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 shadow">Gelombang 1</button>
             <button onclick="selectTacticsWave(2)" id="wave-btn-2" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">Gelombang 2</button>
             <button onclick="selectTacticsWave(3)" id="wave-btn-3" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">Gelombang 3</button>
             <button onclick="selectTacticsWave(4)" id="wave-btn-4" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">Gelombang 4</button>
+            <button onclick="selectTacticsWave(5)" id="wave-btn-5" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">Gelombang 5</button>
           </div>
 
           <select id="formation-select" onchange="changeFormation(this.value)" class="flex-1 md:flex-initial bg-slate-950 border border-slate-700 text-emerald-400 text-xs font-extrabold rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500">
@@ -405,7 +417,7 @@
         </div>
 
         <div class="flex flex-wrap gap-3 pt-2">
-          <button onclick="saveGasUrl()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-6 py-3 rounded-xl transition shadow-lg shadow-emerald-500/20">
+          <button onclick="saveGasUrl()" class="admin-only hidden bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-6 py-3 rounded-xl transition shadow-lg shadow-emerald-500/20">
             Simpan Endpoint URL
           </button>
           <button onclick="fetchFromSheets()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-6 py-3 rounded-xl transition border border-slate-700">
@@ -442,6 +454,33 @@
       </button>
     </div>
   </nav>
+
+  <!-- ================= MODAL LOGIN ADMIN ================= -->
+  <div id="admin-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-extrabold text-amber-400 text-base flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved"></i> Login Admin Futsal Pro
+        </h3>
+        <button onclick="closeAdminModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="space-y-3">
+        <p class="text-xs text-slate-400">Masukkan Password Admin untuk membuka akses Full CRUD dan Rotasi Taktis.</p>
+        <div>
+          <label class="text-xs text-slate-300 font-bold block mb-1">Password Admin:</label>
+          <input type="password" id="admin-password-input" placeholder="Masukkan password..." class="w-full bg-slate-950 border border-slate-700 text-emerald-400 text-xs p-3 rounded-xl focus:outline-none focus:border-amber-500 font-bold">
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button onclick="closeAdminModal()" class="flex-1 py-2.5 bg-slate-800 text-slate-300 text-xs font-bold rounded-xl">Batal</button>
+          <button onclick="submitAdminLogin()" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl shadow-lg shadow-amber-500/20">
+            Login Admin
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ================= MODAL 1: FORM INPUT / EDIT PEMAIN (CRUD) ================= -->
   <div id="player-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -485,11 +524,12 @@
           <div>
             <label class="text-xs text-amber-400 font-bold block mb-1.5">Gelombang / Status Pemain</label>
             <select id="player-status" class="w-full bg-slate-950 border border-slate-700 text-amber-400 font-bold text-xs p-3 rounded-xl focus:outline-none focus:border-amber-500">
-              <option value="🔒 Kunci (Tidak Diganti)">🔒 Kunci (Tidak Diganti / Core)</option>
-              <option value="Gelombang 1 (Utama)">Gelombang 1 (Starting 5)</option>
+              <option value="Gelombang 1 (Utama)">Gelombang 1 (Utama)</option>
               <option value="Gelombang 2 (Pemain Kedua)">Gelombang 2 (Pemain Kedua)</option>
               <option value="Gelombang 3 (Pemain Ketiga)">Gelombang 3 (Pemain Ketiga)</option>
               <option value="Gelombang 4 (Pemain Keempat)">Gelombang 4 (Pemain Keempat)</option>
+              <option value="Gelombang 5 (Pemain Kelima)">Gelombang 5 (Pemain Kelima)</option>
+              <option value="🔒 Kunci (Tidak Diganti)">🔒 Kunci (Tidak Diganti / Core)</option>
             </select>
           </div>
           <div>
@@ -520,7 +560,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL 2: FORM ROTASI EKSPLISIT (SINGLE SWAP) ================= -->
+  <!-- ================= MODAL 2: FORM ROTASI EKSPLISIT ================= -->
   <div id="sub-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -552,7 +592,7 @@
 
         <div>
           <label class="text-xs text-emerald-400 font-extrabold block mb-1.5">
-            <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> PEMAIN MASUK (Pengganti dari Database):
+            <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> PEMAIN MASUK (Pengganti):
           </label>
           <select id="sub-in-select" class="w-full bg-slate-950 border border-slate-700 text-white text-xs p-3 rounded-xl focus:outline-none focus:border-emerald-500 font-bold"></select>
         </div>
@@ -697,6 +737,9 @@
     let currentFormation = "1-2-1";
     let activeTacticsWave = 1;
     let subLogs = [];
+    let isAdmin = false;
+
+    const ADMIN_PASSWORD_HASH = "FutsalDT123";
 
     const formationPresets = {
       "1-2-1": [
@@ -759,8 +802,65 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("gas-url-input").value = GAS_URL;
+      applyAdminPermissions();
       fetchFromSheets();
     });
+
+    // ADMIN AUTHENTICATION
+    function openAdminModal() {
+      if (isAdmin) {
+        if (confirm("Logout dari Mode Admin? Akses akan kembali ke Lihat Saja (Publik).")) {
+          isAdmin = false;
+          applyAdminPermissions();
+          showToast("Logout Admin berhasil", "info");
+        }
+        return;
+      }
+      document.getElementById('admin-password-input').value = '';
+      document.getElementById('admin-modal').classList.remove('hidden');
+    }
+
+    function closeAdminModal() {
+      document.getElementById('admin-modal').classList.add('hidden');
+    }
+
+    function submitAdminLogin() {
+      const pwd = document.getElementById('admin-password-input').value;
+      if (pwd === ADMIN_PASSWORD_HASH) {
+        isAdmin = true;
+        closeAdminModal();
+        applyAdminPermissions();
+        showToast("Login Admin Berhasil! Akses Full CRUD Aktif.", "success");
+      } else {
+        alert("Password Admin Salah!");
+      }
+    }
+
+    function applyAdminPermissions() {
+      const btnLabel = document.getElementById('admin-btn-label');
+      const icon = document.getElementById('admin-icon');
+      const toggleBtn = document.getElementById('admin-toggle-btn');
+      const badge = document.getElementById('access-mode-badge');
+
+      if (isAdmin) {
+        btnLabel.innerText = "Admin Active";
+        icon.className = "fa-solid fa-unlock text-emerald-400";
+        toggleBtn.className = "bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 text-xs font-bold px-3 py-2.5 rounded-xl transition flex items-center gap-1.5";
+        badge.innerHTML = `<i class="fa-solid fa-user-gear mr-1"></i> Mode: Admin (Full CRUD)`;
+        badge.className = "px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold";
+
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+      } else {
+        btnLabel.innerText = "Lihat Saja";
+        icon.className = "fa-solid fa-lock text-amber-400";
+        toggleBtn.className = "bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 text-xs font-bold px-3 py-2.5 rounded-xl transition flex items-center gap-1.5";
+        badge.innerHTML = `<i class="fa-solid fa-eye mr-1"></i> Mode: Publik (Lihat Saja)`;
+        badge.className = "px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold";
+
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+      }
+      renderPlayers();
+    }
 
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
@@ -798,6 +898,30 @@
         activeMob.classList.add('text-emerald-400');
         activeMob.classList.remove('text-slate-400');
       }
+    }
+
+    // PARSER GELOMBANG DATABASE fleksibel & SINKRON
+    function getPlayerWaveNumber(status) {
+      if (!status) return 1;
+      if (status.includes('Kunci')) return 'LOCKED';
+      if (status.includes('Gelombang 1') || status === 'Pemain Utama' || status.includes('Utama')) return 1;
+      if (status.includes('Gelombang 2') || status.includes('Kedua')) return 2;
+      if (status.includes('Gelombang 3') || status.includes('Ketiga')) return 3;
+      if (status.includes('Gelombang 4') || status.includes('Keempat')) return 4;
+      if (status.includes('Gelombang 5') || status.includes('Kelima')) return 5;
+      
+      const match = status.match(/Gelombang\s*(\d+)/i);
+      if (match) return parseInt(match[1]);
+      return 1;
+    }
+
+    function isLocked(status) {
+      return status && status.includes('Kunci');
+    }
+
+    function isWave1(status) {
+      const waveNum = getPlayerWaveNumber(status);
+      return waveNum === 1 || waveNum === 'LOCKED';
     }
 
     // DATABASE READ
@@ -868,14 +992,6 @@
       }
     }
 
-    function isLocked(status) {
-      return status && status.includes('Kunci');
-    }
-
-    function isWave1(status) {
-      return status && (status.includes('Gelombang 1') || status === 'Pemain Utama' || isLocked(status));
-    }
-
     // DASHBOARD & PAIR ROTATION
     function renderDashboardStats() {
       const locked = players.filter(p => isLocked(p.status));
@@ -884,8 +1000,7 @@
 
       document.getElementById('stat-total-players').innerText = players.length;
       document.getElementById('stat-locked-players').innerText = locked.length;
-      document.getElementById('stat-main-players').innerText = `${g1.length} / 5`;
-      document.getElementById('stat-backup-players').innerText = backup.length;
+      document.getElementById('stat-main-players').innerText = `${g1.length}`;
       document.getElementById('stat-sub-count').innerText = subLogs.length;
 
       // Render Rotation Pairs Grid
@@ -952,9 +1067,9 @@
 
       // Distribution
       const countLocked = players.filter(p => isLocked(p.status)).length;
-      const countG1 = players.filter(p => p.status.includes('Gelombang 1')).length;
-      const countG2 = players.filter(p => p.status.includes('Gelombang 2')).length;
-      const countG3 = players.filter(p => p.status.includes('Gelombang 3')).length;
+      const countG1 = players.filter(p => getPlayerWaveNumber(p.status) === 1).length;
+      const countG2 = players.filter(p => getPlayerWaveNumber(p.status) === 2).length;
+      const countG3 = players.filter(p => getPlayerWaveNumber(p.status) === 3).length;
 
       document.getElementById('position-distribution').innerHTML = `
         <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex justify-between items-center">
@@ -987,7 +1102,7 @@
 
       const filtered = players.filter(p => {
         const matchName = p.nama.toLowerCase().includes(query) || (p.nama_panggilan && p.nama_panggilan.toLowerCase().includes(query));
-        const matchPkg = pkgFilter === 'ALL' || p.status.includes(pkgFilter) || (pkgFilter.includes('Gelombang 1') && p.status === 'Pemain Utama');
+        const matchPkg = pkgFilter === 'ALL' || p.status.includes(pkgFilter) || (pkgFilter.includes('Gelombang 1') && isWave1(p.status));
         return matchName && matchPkg;
       });
 
@@ -1012,7 +1127,7 @@
             </span>
           </td>
           <td class="p-3.5 text-center">
-            <button onclick="toggleLockStatus('${p.id}')" title="Klik untuk Kunci/Buka Pemain Ini" class="px-2 py-0.5 rounded text-[10px] font-bold ${isLocked(p.status) ? 'bg-purple-500/30 text-purple-300 border border-purple-500/50' : 'bg-slate-800 text-slate-300'} transition hover:scale-105">
+            <button onclick="${isAdmin ? `toggleLockStatus('${p.id}')` : ''}" title="${isAdmin ? 'Klik untuk Kunci/Buka Status' : 'Login Admin untuk Mengubah'}" class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${isLocked(p.status) ? 'bg-purple-500/30 text-purple-300 border border-purple-500/50' : 'bg-slate-800 text-slate-300'} transition hover:scale-105">
               ${p.status}
             </button>
           </td>
@@ -1020,7 +1135,7 @@
             ${p.pengganti_nama !== '-' ? `➔ ${p.pengganti_nama}` : '-'}
           </td>
           <td class="p-3.5 text-center font-extrabold text-purple-400">${p.physical}</td>
-          <td class="p-3.5 text-center">
+          <td class="p-3.5 text-center admin-only ${isAdmin ? '' : 'hidden'}">
             <div class="flex items-center justify-center gap-2">
               <button onclick="editPlayer('${p.id}')" title="Edit Data" class="p-1.5 bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-slate-300 rounded-lg transition"><i class="fa-solid fa-pen"></i></button>
               <button onclick="deletePlayer('${p.id}')" title="Hapus Pemain" class="p-1.5 bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-300 rounded-lg transition"><i class="fa-solid fa-trash-can"></i></button>
@@ -1031,6 +1146,7 @@
     }
 
     function toggleLockStatus(id) {
+      if (!isAdmin) return;
       const p = players.find(x => x.id === id);
       if (!p) return;
       if (isLocked(p.status)) {
@@ -1099,7 +1215,7 @@
       const mains = players.filter(p => isWave1(p.status));
       const subs = players.filter(p => !isWave1(p.status));
 
-      document.getElementById('main-count').innerText = `${mains.length} / 5 Pemain`;
+      document.getElementById('main-count').innerText = `${mains.length} Pemain`;
       document.getElementById('subs-count').innerText = `${subs.length} Pemain`;
 
       mainList.innerHTML = mains.map(p => {
@@ -1120,9 +1236,10 @@
                 </span>
               </div>
             </div>
+            ${isAdmin ? `
             <button onclick="openSubModal('${p.id}')" title="Proses Pergantian Pemain Ini" class="p-2 bg-amber-500/20 hover:bg-amber-500 hover:text-slate-950 text-amber-400 rounded-xl transition flex items-center gap-1 text-xs font-bold">
               <i class="fa-solid fa-arrows-rotate"></i> Ganti
-            </button>
+            </button>` : ''}
           </div>
         `;
       }).join('');
@@ -1140,8 +1257,12 @@
       `).join('');
     }
 
-    // ROTASI INDIVIDUAL (SINGLE SWAP VIA MODAL)
+    // ROTASI INDIVIDUAL
     function openSubModal(preselectOutId = null) {
+      if (!isAdmin) {
+        showToast("Login Admin (Password: FutsalDT123) untuk melakukan rotasi!", "warning");
+        return;
+      }
       const mains = players.filter(p => isWave1(p.status));
       const subs = players.filter(p => !isWave1(p.status));
 
@@ -1189,6 +1310,7 @@
     }
 
     function executeExplicitSubstitution() {
+      if (!isAdmin) return;
       const outId = document.getElementById('sub-out-select').value;
       const inId = document.getElementById('sub-in-select').value;
       const reason = document.getElementById('sub-reason-input').value || "Rotasi Single-Player";
@@ -1201,7 +1323,6 @@
       const oldOutStatus = playerOut.status;
       const oldInStatus = playerIn.status;
 
-      // Tukar status gelombang
       playerOut.status = oldInStatus.includes('Gelombang') ? oldInStatus : 'Gelombang 2 (Pemain Kedua)';
       playerIn.status = isLocked(oldOutStatus) ? 'Gelombang 1 (Utama)' : 'Gelombang 1 (Utama)';
 
@@ -1231,12 +1352,14 @@
       showToast(`Rotasi Berhasil: ${pOutName} ➔ ${pInName}`, "success");
     }
 
-    // ROTASI MASSAL GELOMBANG (DENGAN PERLINDUNGAN PEMAIN KUNCI 🔒)
+    // ROTASI MASSAL GELOMBANG
     function executeWaveSwap(targetWaveNum) {
+      if (!isAdmin) {
+        showToast("Login Admin untuk melakukan rotasi!", "warning");
+        return;
+      }
       const targetWaveKey = `Gelombang ${targetWaveNum}`;
       const wavePlayers = players.filter(p => p.status.includes(targetWaveKey));
-      
-      // Pemain non-kunci yang ada di Gelombang 1
       const g1NonLocked = players.filter(p => isWave1(p.status) && !isLocked(p.status));
 
       if (wavePlayers.length === 0) {
@@ -1256,7 +1379,7 @@
         outNo: "MASSAL",
         inNama: `Gelombang ${targetWaveNum}`,
         inNo: "MASSAL",
-        reason: `Rotasi Massal Gelombang ${targetWaveNum} (Pemain 🔒 Kunci Dipertahankan)`,
+        reason: `Rotasi Massal Gelombang ${targetWaveNum}`,
         fullText: `Rotasi Massal: Gelombang 1 diistirahatkan ➔ Gelombang ${targetWaveNum} masuk ke lapangan.`
       });
 
@@ -1286,10 +1409,10 @@
       `).join('');
     }
 
-    // TAKTIK & FORMASI MULTI-GELOMBANG (DENGAN PEMAIN KUNCI 🔒 & QUICK SWAP TOKEN)
+    // TAKTIK & FORMASI MULTI-GELOMBANG SINKRON DATABASE
     function selectTacticsWave(waveNum) {
       activeTacticsWave = waveNum;
-      for (let i = 1; i <= 4; i++) {
+      for (let i = 1; i <= 5; i++) {
         const btn = document.getElementById(`wave-btn-${i}`);
         if (btn) {
           if (i === waveNum) {
@@ -1309,17 +1432,21 @@
 
     function renderTacticsPitch() {
       const pitch = document.getElementById('pitch-container');
-      const waveKey = `Gelombang ${activeTacticsWave}`;
       
-      // Pemain kunci selalu disertakan di setiap gelombang!
+      // Filter SINKRON DATABASE:
+      // Ambil pemain yang terdaftar di Gelombang aktif OR bertanda 🔒 Kunci
       const lockedPlayers = players.filter(p => isLocked(p.status));
-      const waveSpecificPlayers = players.filter(p => !isLocked(p.status) && (p.status.includes(waveKey) || (activeTacticsWave === 1 && p.status === 'Pemain Utama')));
+      const waveSpecificPlayers = players.filter(p => !isLocked(p.status) && getPlayerWaveNumber(p.status) === activeTacticsWave);
       
-      // Gabungkan pemain kunci + pemain gelombang aktif
       const combinedActivePlayers = [...lockedPlayers, ...waveSpecificPlayers];
 
       const presetSlots = formationPresets[currentFormation] || formationPresets["1-2-1"];
       const assignedTokens = assignPlayersToSlots(combinedActivePlayers, presetSlots);
+
+      if (assignedTokens.length === 0) {
+        pitch.innerHTML = `<div class="absolute inset-0 flex items-center justify-center text-amber-300 font-bold text-xs bg-slate-950/60 rounded-2xl">Tidak ada pemain yang diatur pada Gelombang ${activeTacticsWave} di Database.</div>`;
+        return;
+      }
 
       pitch.innerHTML = assignedTokens.map(at => {
         const displayName = at.player.nama_panggilan || at.player.nama;
@@ -1340,13 +1467,16 @@
 
       assignedTokens.forEach(at => {
         const tokenEl = document.getElementById(`token-${at.player.id}`);
-        if (tokenEl) makeTokenDraggable(tokenEl);
+        if (tokenEl && isAdmin) makeTokenDraggable(tokenEl);
       });
     }
 
-    // KLIK TOKEN DI LAPANGAN UNTUK ROTASI ATAU KUNCI STATUS
     function handleTokenClick(playerId) {
-      openSubModal(playerId);
+      if (isAdmin) {
+        openSubModal(playerId);
+      } else {
+        showToast("Mode Lihat Saja. Login Admin (FutsalDT123) untuk mengedit.", "info");
+      }
     }
 
     function assignPlayersToSlots(mains, presetSlots) {
@@ -1426,9 +1556,9 @@
     // EXPORT PDF SEKALIGUS
     function exportStrategyPDF() {
       const locked = players.filter(p => isLocked(p.status));
-      const g1 = players.filter(p => isWave1(p.status));
-      const g2 = players.filter(p => p.status.includes('Gelombang 2'));
-      const g3 = players.filter(p => p.status.includes('Gelombang 3'));
+      const g1 = players.filter(p => getPlayerWaveNumber(p.status) === 1);
+      const g2 = players.filter(p => getPlayerWaveNumber(p.status) === 2);
+      const g3 = players.filter(p => getPlayerWaveNumber(p.status) === 3);
 
       document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
       document.getElementById('pdf-formation').innerText = `Formasi: ${currentFormation}`;
@@ -1507,6 +1637,10 @@
 
     // MODAL CONTROL & CRUD
     function openPlayerModal() {
+      if (!isAdmin) {
+        showToast("Akses ditolak: Hanya Admin yang dapat menambah pemain!", "warning");
+        return;
+      }
       document.getElementById('player-form').reset();
       document.getElementById('player-id').value = '';
       document.getElementById('modal-title').innerText = 'Form Input Pemain Baru';
@@ -1523,6 +1657,7 @@
     }
 
     function editPlayer(id) {
+      if (!isAdmin) return;
       const p = players.find(x => x.id === id);
       if (!p) return;
 
@@ -1549,6 +1684,7 @@
 
     function handlePlayerSubmit(e) {
       e.preventDefault();
+      if (!isAdmin) return;
       const existingId = document.getElementById('player-id').value;
 
       const selectedSubId = document.getElementById('player-pengganti-select').value;
@@ -1589,6 +1725,7 @@
     }
 
     function deletePlayer(id) {
+      if (!isAdmin) return;
       if (!confirm("Hapus pemain ini dari database?")) return;
       players = players.filter(p => p.id !== id);
       renderDashboardStats();
@@ -1606,6 +1743,7 @@
     }
 
     function saveGasUrl() {
+      if (!isAdmin) return;
       GAS_URL = document.getElementById('gas-url-input').value;
       fetchFromSheets();
     }
