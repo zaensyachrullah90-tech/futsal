@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Futsal Tactical Pro - Full-Time Key Player & Single Sub Sync</title>
+  <title>Futsal Tactical Pro - Per-Wave Formation & HD Export Sync</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -11,7 +11,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- html2pdf.js untuk Export PDF -->
+  <!-- html2canvas & html2pdf untuk Export PDF & JPG -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -71,7 +72,7 @@
           <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
             FUTSAL <span class="text-emerald-400">TACTICAL PRO</span>
           </h1>
-          <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Full-Time Player Locking & Single Substitution Sync</p>
+          <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Per-Wave Formations & High-Definition PDF/JPG Exporter</p>
         </div>
       </div>
 
@@ -94,14 +95,19 @@
         </button>
       </nav>
 
-      <!-- Action Area: Admin Login & Export -->
+      <!-- Action Area: Admin Login & Export PDF/JPG -->
       <div class="flex items-center gap-2">
         <button id="admin-toggle-btn" onclick="openAdminModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 text-xs font-bold px-3 py-2.5 rounded-xl transition flex items-center gap-1.5">
           <i class="fa-solid fa-lock text-sm" id="admin-icon"></i>
           <span id="admin-btn-label" class="hidden sm:inline">Lihat Saja</span>
         </button>
 
-        <button onclick="exportStrategyPDF()" class="bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-rose-900/30">
+        <button onclick="exportStrategyJPG()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold px-3 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-lg shadow-blue-900/30">
+          <i class="fa-solid fa-file-image"></i>
+          <span class="hidden sm:inline">Export JPG</span>
+        </button>
+
+        <button onclick="exportStrategyPDF()" class="bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white text-xs font-bold px-3 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-lg shadow-rose-900/30">
           <i class="fa-solid fa-file-pdf"></i>
           <span class="hidden sm:inline">Export PDF</span>
         </button>
@@ -374,15 +380,15 @@
       </div>
     </section>
 
-    <!-- ================= TAB 4: TAKTIK & FORMASI MULTI-GELOMBANG SINKRON ================= -->
+    <!-- ================= TAB 4: TAKTIK & FORMASI PER GELOMBANG ================= -->
     <section id="tab-tactics" class="space-y-6">
       <div class="bg-slate-900/90 p-5 rounded-3xl border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 class="text-lg font-extrabold text-white flex items-center gap-2">
             <span>Visualisasi Formasi Taktis</span>
-            <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30">100% Dual Sync Database</span>
+            <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30">Formasi Mandiri Per Gelombang</span>
           </h2>
-          <p class="text-xs text-slate-400">Klik token di lapangan untuk **Kunci Pemain Full-Time (🔒)** atau ganti pemain secara langsung.</p>
+          <p class="text-xs text-slate-400">Pilih Gelombang untuk mengatur taktik/formasi masing-masing gelombang secara terpisah.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
@@ -401,6 +407,7 @@
             <button onclick="selectTacticsWave(5)" id="wave-btn-5" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">Gelombang 5</button>
           </div>
 
+          <!-- Dropdown Formasi Per Gelombang -->
           <select id="formation-select" onchange="changeFormation(this.value)" class="flex-1 md:flex-initial bg-slate-950 border border-slate-700 text-emerald-400 text-xs font-extrabold rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500">
             <option value="1-2-1">Formasi 1-2-1 (Diamond Standard)</option>
             <option value="2-2">Formasi 2-2 (Square / Box Defense)</option>
@@ -545,7 +552,7 @@
             <option value="Gelombang 3 (Pemain Ketiga)">Gelombang 3 (Pemain Ketiga)</option>
             <option value="Gelombang 4 (Pemain Keempat)">Gelombang 4 (Pemain Keempat)</option>
             <option value="Gelombang 5 (Pemain Kelima)">Gelombang 5 (Pemain Kelima)</option>
-            <option value="🔒 Kunci (Full Time)">🔒 Kunci (Full Time / Selalu Tampil)</option>
+            <option value="🔒 Kunci (Full Time)">🔒 Kunci (Full Time / Semua Gelombang)</option>
           </select>
         </div>
 
@@ -636,7 +643,7 @@
               <option value="Gelombang 3 (Pemain Ketiga)">Gelombang 3 (Pemain Ketiga)</option>
               <option value="Gelombang 4 (Pemain Keempat)">Gelombang 4 (Pemain Keempat)</option>
               <option value="Gelombang 5 (Pemain Kelima)">Gelombang 5 (Pemain Kelima)</option>
-              <option value="🔒 Kunci (Full Time)">🔒 Kunci (Full Time / Selalu Tampil)</option>
+              <option value="🔒 Kunci (Full Time)">🔒 Kunci (Full Time / Semua Gelombang)</option>
             </select>
           </div>
           <div>
@@ -719,116 +726,73 @@
     </div>
   </div>
 
-  <!-- ================= TEMPLATE RENDER PDF EXPORT ================= -->
-  <div id="pdf-template" class="hidden bg-white text-slate-900 p-8 space-y-6 max-w-3xl mx-auto text-xs">
-    <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-center">
-      <div>
-        <h1 class="text-2xl font-black tracking-tight text-slate-900">LAPORAN STRATEGI & ROTASI MULTI-GELOMBANG</h1>
-        <p class="text-xs text-slate-600 font-bold">Futsal Pro Multi-Wave & Pair Substitution Tactical Report</p>
+  <!-- ================= OFF-SCREEN TEMPLATE EXPORT PDF & JPG (CLEAN & NEAT) ================= -->
+  <div id="pdf-template-wrapper" style="position: absolute; left: -9999px; top: 0; width: 800px; z-index: -999;">
+    <div id="pdf-template" class="bg-white text-slate-900 p-8 space-y-6 text-xs font-sans">
+      <!-- Document Header -->
+      <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-center">
+        <div>
+          <h1 class="text-2xl font-black tracking-tight text-slate-900">LAPORAN STRATEGI & ROTASI FUTSAL PRO</h1>
+          <p class="text-xs text-slate-600 font-bold">Multi-Wave Formations & Player Substitution Tactical Report</p>
+        </div>
+        <div class="text-right">
+          <span class="text-xs text-slate-500 block" id="pdf-date"></span>
+          <span class="text-xs font-bold text-emerald-700 block" id="pdf-formations-summary">Formasi: Dynamic Wave</span>
+        </div>
       </div>
-      <div class="text-right">
-        <span class="text-xs text-slate-500 block" id="pdf-date"></span>
-        <span class="text-xs font-bold text-emerald-700" id="pdf-formation">Formasi: 1-2-1</span>
+
+      <!-- Section 1: Pemain Kunci Full Time -->
+      <div class="space-y-2">
+        <h2 class="font-black text-xs uppercase bg-purple-100 text-purple-900 p-2 border-l-4 border-purple-600">
+          1. Pemain Kunci Inti (🔒 Full Time - Selalu Tampil di Semua Gelombang)
+        </h2>
+        <table class="w-full border-collapse border border-slate-300 text-xs">
+          <thead class="bg-slate-200 font-bold text-slate-800">
+            <tr>
+              <th class="border border-slate-300 p-2 text-center w-12">NO</th>
+              <th class="border border-slate-300 p-2 text-left">NAMA LENGKAP</th>
+              <th class="border border-slate-300 p-2 text-left">PANGGILAN</th>
+              <th class="border border-slate-300 p-2 text-center w-24">POSISI</th>
+            </tr>
+          </thead>
+          <tbody id="pdf-locked-tbody"></tbody>
+        </table>
       </div>
-    </div>
 
-    <!-- Pemain Kunci -->
-    <div class="space-y-2">
-      <h2 class="font-black text-xs uppercase bg-purple-100 text-purple-900 p-2 border-l-4 border-purple-600">
-        1. Pemain Kunci Inti (🔒 Full Time - Selalu Tampil)
-      </h2>
-      <table class="w-full border-collapse border border-slate-300 text-xs">
-        <thead class="bg-slate-200 font-bold text-slate-800">
-          <tr>
-            <th class="border border-slate-300 p-2 text-center">NO</th>
-            <th class="border border-slate-300 p-2 text-left">NAMA LENGKAP</th>
-            <th class="border border-slate-300 p-2 text-left">PANGGILAN</th>
-            <th class="border border-slate-300 p-2 text-center">POSISI</th>
-          </tr>
-        </thead>
-        <tbody id="pdf-locked-tbody"></tbody>
-      </table>
-    </div>
+      <!-- Section 2: Lineup Per Gelombang -->
+      <div class="space-y-4">
+        <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-emerald-600">
+          2. Susunan Skuad & Formasi Per Gelombang
+        </h2>
+        
+        <div id="pdf-waves-container" class="space-y-3"></div>
+      </div>
 
-    <!-- Gelombang 1 -->
-    <div class="space-y-2">
-      <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-emerald-600">
-        2. Formasi Gelombang 1 (Utama)
-      </h2>
-      <table class="w-full border-collapse border border-slate-300 text-xs">
-        <thead class="bg-slate-200 font-bold text-slate-800">
-          <tr>
-            <th class="border border-slate-300 p-2 text-center">NO</th>
-            <th class="border border-slate-300 p-2 text-left">NAMA LENGKAP</th>
-            <th class="border border-slate-300 p-2 text-left">PANGGILAN</th>
-            <th class="border border-slate-300 p-2 text-center">POSISI</th>
-            <th class="border border-slate-300 p-2 text-left">PASANGAN PENGGANTI</th>
-          </tr>
-        </thead>
-        <tbody id="pdf-wave1-tbody"></tbody>
-      </table>
-    </div>
+      <!-- Section 3: Log Pergantian Match -->
+      <div class="space-y-2">
+        <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-rose-600">
+          3. Riwayat Catatan Rotasi Match Realtime
+        </h2>
+        <table class="w-full border-collapse border border-slate-300 text-xs">
+          <thead class="bg-slate-200 font-bold text-slate-800">
+            <tr>
+              <th class="border border-slate-300 p-2 text-center w-16">MENIT</th>
+              <th class="border border-slate-300 p-2 text-left">Rincian Rotasi Pemain</th>
+            </tr>
+          </thead>
+          <tbody id="pdf-sub-tbody"></tbody>
+        </table>
+      </div>
 
-    <!-- Gelombang 2 -->
-    <div class="space-y-2">
-      <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-blue-600">
-        3. Formasi Gelombang 2 (Pemain Kedua)
-      </h2>
-      <table class="w-full border-collapse border border-slate-300 text-xs">
-        <thead class="bg-slate-200 font-bold text-slate-800">
-          <tr>
-            <th class="border border-slate-300 p-2 text-center">NO</th>
-            <th class="border border-slate-300 p-2 text-left">NAMA LENGKAP</th>
-            <th class="border border-slate-300 p-2 text-left">PANGGILAN</th>
-            <th class="border border-slate-300 p-2 text-center">POSISI</th>
-          </tr>
-        </thead>
-        <tbody id="pdf-wave2-tbody"></tbody>
-      </table>
-    </div>
-
-    <!-- Gelombang 3 -->
-    <div class="space-y-2">
-      <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-amber-600">
-        4. Formasi Gelombang 3 (Pemain Ketiga)
-      </h2>
-      <table class="w-full border-collapse border border-slate-300 text-xs">
-        <thead class="bg-slate-200 font-bold text-slate-800">
-          <tr>
-            <th class="border border-slate-300 p-2 text-center">NO</th>
-            <th class="border border-slate-300 p-2 text-left">NAMA LENGKAP</th>
-            <th class="border border-slate-300 p-2 text-left">PANGGILAN</th>
-            <th class="border border-slate-300 p-2 text-center">POSISI</th>
-          </tr>
-        </thead>
-        <tbody id="pdf-wave3-tbody"></tbody>
-      </table>
-    </div>
-
-    <!-- Log Pergantian -->
-    <div class="space-y-2">
-      <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-rose-600">
-        5. Riwayat Catatan Rotasi Match
-      </h2>
-      <table class="w-full border-collapse border border-slate-300 text-xs">
-        <thead class="bg-slate-200 font-bold text-slate-800">
-          <tr>
-            <th class="border border-slate-300 p-2 text-center">MENIT</th>
-            <th class="border border-slate-300 p-2 text-left">Rincian Rotasi Pemain</th>
-          </tr>
-        </thead>
-        <tbody id="pdf-sub-tbody"></tbody>
-      </table>
-    </div>
-
-    <!-- Catatan Pelatih -->
-    <div class="space-y-2">
-      <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-slate-600">
-        6. Catatan Taktik Pelatih
-      </h2>
-      <p id="pdf-notes-content" class="p-3 border border-slate-300 rounded bg-slate-50 italic text-slate-700">
-        Tidak ada catatan khusus.
-      </p>
+      <!-- Section 4: Catatan Taktik Pelatih -->
+      <div class="space-y-2">
+        <h2 class="font-black text-xs uppercase bg-slate-100 p-2 border-l-4 border-slate-600">
+          4. Catatan Taktik Pelatih
+        </h2>
+        <p id="pdf-notes-content" class="p-3 border border-slate-300 rounded bg-slate-50 italic text-slate-700">
+          Tidak ada catatan khusus.
+        </p>
+      </div>
     </div>
   </div>
 
@@ -841,10 +805,18 @@
     let secondsElapsed = 0;
     let isTimerRunning = false;
     let rotationLimitMinutes = 10;
-    let currentFormation = "1-2-1";
     let activeTacticsWave = 1;
     let subLogs = [];
     let isAdmin = false;
+
+    // FORMASI MANDIRI PER GELOMBANG
+    let waveFormations = {
+      1: "1-2-1",
+      2: "2-2",
+      3: "4-0",
+      4: "3-0-1",
+      5: "1-1-2"
+    };
 
     const ADMIN_PASSWORD_HASH = "FutsalDT123";
 
@@ -913,29 +885,36 @@
       fetchFromSheets();
     });
 
-    // PARSER GELOMBANG AKURAT (PEMAIN KUNCI / FULL TIME ALWAYS RECOGNIZED)
-    function getPlayerWaveNumber(status) {
-      if (!status) return 1;
-      const s = String(status).toLowerCase();
-      if (s.includes('kunci') || s.includes('lock') || s.includes('full time') || s.includes('core')) return 'LOCKED';
-      if (s.includes('gelombang 1') || s.includes('utama') || s.includes('wave 1') || s.includes('starting')) return 1;
-      if (s.includes('gelombang 2') || s.includes('kedua') || s.includes('wave 2')) return 2;
-      if (s.includes('gelombang 3') || s.includes('ketiga') || s.includes('wave 3')) return 3;
-      if (s.includes('gelombang 4') || s.includes('keempat') || s.includes('wave 4')) return 4;
-      if (s.includes('gelombang 5') || s.includes('kelima') || s.includes('wave 5')) return 5;
+    // CHECK APAKAH PEMAIN BERMAIN DI GELOMBANG TERTENTU (FLEKSIBEL)
+    function isPlayerInWave(p, waveNum) {
+      if (!p || !p.status) return waveNum === 1;
+      const s = String(p.status).toLowerCase();
       
-      const match = s.match(/(\d+)/);
-      if (match) return parseInt(match[1]);
-      return 1;
+      // Pemain Kunci Full Time -> Tampil di SEMUA GELOMBANG
+      if (s.includes('kunci') || s.includes('full time') || s.includes('selalu') || s.includes('core')) {
+        return true;
+      }
+
+      // Pemain Gelombang Spesifik
+      if (s.includes(`gelombang ${waveNum}`) || s.includes(`g${waveNum}`) || s.includes(`wave ${waveNum}`)) {
+        return true;
+      }
+
+      if ((s.includes('utama') || s.includes('starting')) && waveNum === 1) {
+        return true;
+      }
+
+      return false;
     }
 
     function isLocked(status) {
-      return getPlayerWaveNumber(status) === 'LOCKED';
+      if (!status) return false;
+      const s = String(status).toLowerCase();
+      return s.includes('kunci') || s.includes('full time') || s.includes('selalu');
     }
 
     function isWave1(status) {
-      const waveNum = getPlayerWaveNumber(status);
-      return waveNum === 1 || waveNum === 'LOCKED';
+      return isPlayerInWave({ status }, 1);
     }
 
     // ADMIN AUTHENTICATION
@@ -1104,8 +1083,7 @@
     // DASHBOARD STATS
     function renderDashboardStats() {
       const locked = players.filter(p => isLocked(p.status));
-      const g1 = players.filter(p => isWave1(p.status));
-      const backup = players.filter(p => !isWave1(p.status));
+      const g1 = players.filter(p => isPlayerInWave(p, 1));
 
       document.getElementById('stat-total-players').innerText = players.length;
       document.getElementById('stat-locked-players').innerText = locked.length;
@@ -1121,7 +1099,7 @@
           const replacement = players.find(x => x.id === p.pengganti_id);
           const repName = replacement ? (replacement.nama_panggilan || replacement.nama) : (p.pengganti_nama !== '-' ? p.pengganti_nama : 'Otomatis Sesuai Posisi');
           const repNo = replacement ? `#${replacement.nomor_punggung}` : '';
-          const lockedBadge = isLocked(p.status) ? '<span class="text-[9px] bg-purple-500/20 text-purple-400 font-extrabold px-1.5 py-0.5 rounded border border-purple-500/30">🔒 KUNCI FULL TIME</span>' : '';
+          const lockedBadge = isLocked(p.status) ? '<span class="text-[9px] bg-purple-500/20 text-purple-400 font-extrabold px-1.5 py-0.5 rounded border border-purple-500/30">🔒 FULL TIME</span>' : '';
 
           return `
             <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 flex items-center justify-between">
@@ -1176,13 +1154,13 @@
 
       // Distribution
       const countLocked = players.filter(p => isLocked(p.status)).length;
-      const countG1 = players.filter(p => getPlayerWaveNumber(p.status) === 1).length;
-      const countG2 = players.filter(p => getPlayerWaveNumber(p.status) === 2).length;
-      const countG3 = players.filter(p => getPlayerWaveNumber(p.status) === 3).length;
+      const countG1 = players.filter(p => isPlayerInWave(p, 1) && !isLocked(p.status)).length;
+      const countG2 = players.filter(p => isPlayerInWave(p, 2) && !isLocked(p.status)).length;
+      const countG3 = players.filter(p => isPlayerInWave(p, 3) && !isLocked(p.status)).length;
 
       document.getElementById('position-distribution').innerHTML = `
         <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex justify-between items-center">
-          <span class="text-xs font-bold text-purple-400">🔒 Pemain Kunci</span>
+          <span class="text-xs font-bold text-purple-400">🔒 Kunci Full Time</span>
           <span class="text-sm font-extrabold text-white">${countLocked}</span>
         </div>
         <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex justify-between items-center">
@@ -1272,7 +1250,7 @@
       saveToSheets(p, 'updatePlayer');
     }
 
-    // TAKTIK & FORMASI MULTI-GELOMBANG DENGAN PEMAIN KUNCI FULL TIME
+    // TAKTIK & FORMASI PER GELOMBANG (INDEPENDENT FOR-WAVE)
     function selectTacticsWave(waveNum) {
       activeTacticsWave = waveNum;
       for (let i = 1; i <= 5; i++) {
@@ -1288,26 +1266,30 @@
       const numBadge = document.getElementById('current-wave-num-badge');
       if (numBadge) numBadge.innerText = waveNum;
 
+      // Update dropdown formasi sesuai formasi gelombang ini
+      const formSelect = document.getElementById('formation-select');
+      if (formSelect) {
+        formSelect.value = waveFormations[waveNum] || "1-2-1";
+      }
+
       renderTacticsPitch();
     }
 
     function changeFormation(val) {
-      currentFormation = val;
+      waveFormations[activeTacticsWave] = val;
       renderTacticsPitch();
+      showToast(`Formasi Gelombang ${activeTacticsWave} diatur ke ${val}`, "info");
     }
 
     function renderTacticsPitch() {
       const pitch = document.getElementById('pitch-container');
       
-      // SINKRONISASI PEMAIN KUNCI + GELOMBANG SPESIFIK:
-      // Pemain berstatus 🔒 Kunci (Full Time) SELALU MASUK di semua gelombang!
-      const lockedPlayers = players.filter(p => isLocked(p.status));
-      const waveSpecificPlayers = players.filter(p => !isLocked(p.status) && getPlayerWaveNumber(p.status) === activeTacticsWave);
-      
-      const combinedActivePlayers = [...lockedPlayers, ...waveSpecificPlayers];
+      // Ambil pemain yang terdaftar di Gelombang aktif ATAU Pemain Kunci Full Time
+      const activeWavePlayers = players.filter(p => isPlayerInWave(p, activeTacticsWave));
 
-      const presetSlots = formationPresets[currentFormation] || formationPresets["1-2-1"];
-      const assignedTokens = assignPlayersToSlots(combinedActivePlayers, presetSlots);
+      const currentWaveFormation = waveFormations[activeTacticsWave] || "1-2-1";
+      const presetSlots = formationPresets[currentWaveFormation] || formationPresets["1-2-1"];
+      const assignedTokens = assignPlayersToSlots(activeWavePlayers, presetSlots);
 
       if (assignedTokens.length === 0) {
         pitch.innerHTML = `<div class="absolute inset-0 flex items-center justify-center text-amber-300 font-bold text-xs bg-slate-950/70 rounded-2xl p-4 text-center">
@@ -1407,7 +1389,6 @@
           pSwap.status = oldPStatus;
           saveToSheets(pSwap, 'updatePlayer');
 
-          // Catat log single substitution jika dilakukan tukar pemain
           const currentMatchMin = Math.floor(secondsElapsed / 60);
           subLogs.unshift({
             time: `${currentMatchMin}'`,
@@ -1443,13 +1424,13 @@
       const container = document.getElementById('wave-manager-player-list');
 
       container.innerHTML = players.map(p => {
-        const isInWave = getPlayerWaveNumber(p.status) === activeTacticsWave;
+        const isInWave = isPlayerInWave(p, activeTacticsWave);
         const playerLocked = isLocked(p.status);
 
         return `
           <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
             <div class="flex items-center gap-2">
-              <input type="checkbox" id="wave-check-${p.id}" value="${p.id}" ${isInWave || playerLocked ? 'checked disabled' : ''} class="w-4 h-4 accent-emerald-500 rounded">
+              <input type="checkbox" id="wave-check-${p.id}" value="${p.id}" ${isInWave ? 'checked' : ''} ${playerLocked ? 'disabled' : ''} class="w-4 h-4 accent-emerald-500 rounded">
               <label for="wave-check-${p.id}" class="text-xs font-bold text-white cursor-pointer">
                 #${p.nomor_punggung} ${p.nama_panggilan || p.nama} (${p.posisi})
               </label>
@@ -1475,12 +1456,12 @@
         const checkbox = document.getElementById(`wave-check-${p.id}`);
         if (checkbox && !isLocked(p.status)) {
           if (checkbox.checked) {
-            if (getPlayerWaveNumber(p.status) !== activeTacticsWave) {
+            if (!isPlayerInWave(p, activeTacticsWave)) {
               p.status = targetWaveStatus;
               saveToSheets(p, 'updatePlayer');
             }
           } else {
-            if (getPlayerWaveNumber(p.status) === activeTacticsWave) {
+            if (isPlayerInWave(p, activeTacticsWave)) {
               p.status = 'Gelombang 2 (Pemain Kedua)';
               saveToSheets(p, 'updatePlayer');
             }
@@ -1830,58 +1811,66 @@
       `).join('');
     }
 
-    // EXPORT PDF
-    function exportStrategyPDF() {
+    // EXPORT EXCELLENT PDF & JPG
+    function prepareExportTemplate() {
       const locked = players.filter(p => isLocked(p.status));
-      const g1 = players.filter(p => getPlayerWaveNumber(p.status) === 1);
-      const g2 = players.filter(p => getPlayerWaveNumber(p.status) === 2);
-      const g3 = players.filter(p => getPlayerWaveNumber(p.status) === 3);
 
       document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-      document.getElementById('pdf-formation').innerText = `Formasi: ${currentFormation}`;
+      document.getElementById('pdf-formations-summary').innerText = `G1: ${waveFormations[1]} | G2: ${waveFormations[2]} | G3: ${waveFormations[3]}`;
 
-      // Locked
-      document.getElementById('pdf-locked-tbody').innerHTML = locked.length === 0 ? `<tr><td colspan="4" class="border p-2 text-center text-slate-500">Tidak ada pemain kunci yang dikunci.</td></tr>` : locked.map(p => `
-        <tr>
-          <td class="border p-2 text-center font-bold">#${p.nomor_punggung}</td>
-          <td class="border p-2">${p.nama}</td>
-          <td class="border p-2 font-bold">${p.nama_panggilan || p.nama}</td>
-          <td class="border p-2 text-center">${p.posisi}</td>
-        </tr>
-      `).join('');
+      // Section 1: Pemain Kunci
+      document.getElementById('pdf-locked-tbody').innerHTML = locked.length === 0 ? 
+        `<tr><td colspan="4" class="border p-2 text-center text-slate-500">Tidak ada pemain kunci full time.</td></tr>` : 
+        locked.map(p => `
+          <tr>
+            <td class="border p-2 text-center font-bold">#${p.nomor_punggung}</td>
+            <td class="border p-2 font-bold">${p.nama}</td>
+            <td class="border p-2">${p.nama_panggilan || p.nama}</td>
+            <td class="border p-2 text-center font-semibold text-purple-800">${p.posisi}</td>
+          </tr>
+        `).join('');
 
-      // Wave 1
-      document.getElementById('pdf-wave1-tbody').innerHTML = g1.map(p => `
-        <tr>
-          <td class="border p-2 text-center font-bold">#${p.nomor_punggung}</td>
-          <td class="border p-2">${p.nama}</td>
-          <td class="border p-2 font-bold">${p.nama_panggilan || p.nama}</td>
-          <td class="border p-2 text-center">${p.posisi}</td>
-          <td class="border p-2 font-semibold text-blue-800">${p.pengganti_nama !== '-' ? `➔ ${p.pengganti_nama}` : '-'}</td>
-        </tr>
-      `).join('');
+      // Section 2: Waves Summary
+      const wavesContainer = document.getElementById('pdf-waves-container');
+      let wavesHtml = '';
 
-      // Wave 2
-      document.getElementById('pdf-wave2-tbody').innerHTML = g2.map(p => `
-        <tr>
-          <td class="border p-2 text-center font-bold">#${p.nomor_punggung}</td>
-          <td class="border p-2">${p.nama}</td>
-          <td class="border p-2 font-bold">${p.nama_panggilan || p.nama}</td>
-          <td class="border p-2 text-center">${p.posisi}</td>
-        </tr>
-      `).join('');
+      for (let w = 1; w <= 3; w++) {
+        const waveP = players.filter(p => isPlayerInWave(p, w));
+        const formStr = waveFormations[w] || "1-2-1";
 
-      // Wave 3
-      document.getElementById('pdf-wave3-tbody').innerHTML = g3.map(p => `
-        <tr>
-          <td class="border p-2 text-center font-bold">#${p.nomor_punggung}</td>
-          <td class="border p-2">${p.nama}</td>
-          <td class="border p-2 font-bold">${p.nama_panggilan || p.nama}</td>
-          <td class="border p-2 text-center">${p.posisi}</td>
-        </tr>
-      `).join('');
+        wavesHtml += `
+          <div class="border border-slate-300 rounded p-3 space-y-2">
+            <div class="flex justify-between items-center border-b pb-1 font-bold">
+              <span class="text-emerald-800 uppercase">Gelombang ${w}</span>
+              <span class="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-mono">Formasi: ${formStr}</span>
+            </div>
+            <table class="w-full border-collapse border border-slate-200 text-xs">
+              <thead class="bg-slate-50 font-bold">
+                <tr>
+                  <th class="border p-1.5 text-center w-10">NO</th>
+                  <th class="border p-1.5 text-left">NAMA PEMAIN</th>
+                  <th class="border p-1.5 text-center w-20">POSISI</th>
+                  <th class="border p-1.5 text-left">PASANGAN PENGGANTI</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${waveP.map(p => `
+                  <tr>
+                    <td class="border p-1.5 text-center font-bold">#${p.nomor_punggung}</td>
+                    <td class="border p-1.5">${p.nama_panggilan || p.nama} ${isLocked(p.status)?'<strong class="text-purple-700">(🔒 Full Time)</strong>':''}</td>
+                    <td class="border p-1.5 text-center">${p.posisi}</td>
+                    <td class="border p-1.5 text-blue-800">${p.pengganti_nama !== '-' ? `➔ ${p.pengganti_nama}` : '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
 
-      // Logs
+      wavesContainer.innerHTML = wavesHtml;
+
+      // Section 3: Sub Logs
       const subTbody = document.getElementById('pdf-sub-tbody');
       if (subLogs.length === 0) {
         subTbody.innerHTML = `<tr><td colspan="2" class="border p-2 text-center text-slate-500">Tidak ada catatan pergantian selama match.</td></tr>`;
@@ -1895,20 +1884,59 @@
       }
 
       document.getElementById('pdf-notes-content').innerText = document.getElementById('coach-notes').value || "Tidak ada catatan khusus.";
+    }
 
+    function exportStrategyPDF() {
+      prepareExportTemplate();
       const element = document.getElementById('pdf-template');
-      element.classList.remove('hidden');
+      const wrapper = document.getElementById('pdf-template-wrapper');
+
+      wrapper.style.position = 'static';
+      wrapper.style.left = '0';
 
       const opt = {
-        margin:       [0.4, 0.4, 0.4, 0.4],
-        filename:     `Laporan_Taktik_Futsal_Sekaligus_${Date.now()}.pdf`,
+        margin:       [0.3, 0.3, 0.3, 0.3],
+        filename:     `Laporan_Taktik_Futsal_Pro_${Date.now()}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
       };
 
       html2pdf().set(opt).from(element).save().then(() => {
-        element.classList.add('hidden');
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '-9999px';
+        showToast("Berhasil mengeksport Laporan PDF Rapi!", "success");
+      }).catch(err => {
+        console.error("PDF Export Error:", err);
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '-9999px';
+        showToast("Gagal export PDF. Silakan coba lagi.", "error");
+      });
+    }
+
+    function exportStrategyJPG() {
+      prepareExportTemplate();
+      const element = document.getElementById('pdf-template');
+      const wrapper = document.getElementById('pdf-template-wrapper');
+
+      wrapper.style.position = 'static';
+      wrapper.style.left = '0';
+
+      html2canvas(element, { scale: 2, useCORS: true, logging: false }).then(canvas => {
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '-9999px';
+
+        const link = document.createElement('a');
+        link.download = `Laporan_Taktik_Futsal_Pro_${Date.now()}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+
+        showToast("Berhasil mengeksport Gambar JPG!", "success");
+      }).catch(err => {
+        console.error("JPG Export Error:", err);
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '-9999px';
+        showToast("Gagal export Gambar JPG.", "error");
       });
     }
 
