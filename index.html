@@ -1728,35 +1728,89 @@
       `).join('');
     }
 
-    // =======================================================================
-    // LOGIKA EXPORT VISUAL LANGSUNG (JPG & PDF) PERSIS SEPERTI GAMBAR ASLI
-    // =======================================================================
    // =======================================================================
-// OPSI EXPORT GAMBAR & PDF DENGAN LAPORAN RINCIAN GELOMBANG
+// EXPORT JPG: 1 FILE GABUNGAN 5 GELOMBANG ATAU GELOMBANG AKTIF SAJA
 // =======================================================================
 
 async function exportStrategyJPG() {
-  const isAll = confirm("Pilih Mode Export Gambar (JPG):\n\n[OK] = Export KESELURUHAN Gelombang (Gelombang 1 - 5)\n[Cancel] = Export GELOMBANG AKTIF Saja (Gelombang " + activeTacticsWave + ")");
+  const choice = confirm("Pilih Mode Export Gambar (JPG):\n\n[OK] = Export KESELURUHAN (1 File Gambar Gabungan Gelombang 1 - 5)\n[Cancel] = Export GELOMBANG AKTIF Saja (Gelombang " + activeTacticsWave + ")");
   
-  if (!isAll) {
-    // Export 1 Gelombang saja
-    await captureAndDownloadWaveJPG(activeTacticsWave);
+  if (!choice) {
+    // Export 1 Gelombang Aktif Saja
+    await captureSingleWaveJPG(activeTacticsWave);
   } else {
-    // Export Semua Gelombang 1 s/d 5
-    for (let w = 1; w <= 5; w++) {
-      selectTacticsWave(w);
-      await new Promise(resolve => setTimeout(resolve, 300)); // Delay render
-      await captureAndDownloadWaveJPG(w);
+    // Export 5 Gelombang Digabung Menjadi 1 File Gambar Vertikal
+    showToast("Memproses 5 Gelombang menjadi 1 Gambar Gabungan...", "info");
+    const originalWave = activeTacticsWave;
+    const headerControls = document.getElementById('tactic-header-controls');
+    const originalDisplay = headerControls.style.display;
+    headerControls.style.display = 'none';
+    window.scrollTo(0, 0);
+
+    try {
+      const canvasArray = [];
+      for (let w = 1; w <= 5; w++) {
+        selectTacticsWave(w);
+        await new Promise(resolve => setTimeout(resolve, 350)); // Tunggu render selesai
+        
+        // Buat label judul gelombang di atas kanvas mini
+        const pitchEl = document.querySelector('.pitch-bg');
+        const c = await html2canvas(pitchEl, { scale: 2, useCORS: true, backgroundColor: '#080c14', logging: false });
+        canvasArray.push({ wave: w, canvas: c });
+      }
+
+      // Kembalikan ke gelombang asal
+      selectTacticsWave(originalWave);
+      headerControls.style.display = originalDisplay;
+
+      // Gabungkan semua kanvas secara vertikal ke 1 Master Canvas
+      const masterCanvas = document.createElement('canvas');
+      const ctx = masterCanvas.getContext('2d');
+      const width = canvasArray[0].canvas.width;
+      const singleHeight = canvasArray[0].canvas.height;
+      const paddingBanner = 60; // Ruang untuk teks judul gelombang
+      
+      masterCanvas.width = width;
+      masterCanvas.height = (singleHeight + paddingBanner) * 5;
+
+      ctx.fillStyle = '#080c14';
+      ctx.fillRect(0, 0, masterCanvas.width, masterCanvas.height);
+
+      let currentY = 0;
+      for (let item of canvasArray) {
+        // Gambar Banner Teks Gelombang
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, currentY, width, paddingBanner);
+        ctx.fillStyle = '#22c55e';
+        ctx.font = 'bold 28px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(`--- GELOMBANG ${item.wave} (Formasi: ${waveFormations[item.wave]}) ---`, 40, currentY + 40);
+        
+        currentY += paddingBanner;
+        ctx.drawImage(item.canvas, 0, currentY);
+        currentY += singleHeight;
+      }
+
+      // Download 1 file gambar gabungan
+      const link = document.createElement('a');
+      link.download = `Futsal_Tactical_Pro_Semua_Gelombang_1-5.jpg`;
+      link.href = masterCanvas.toDataURL('image/jpeg', 0.95);
+      link.click();
+
+      showToast("Berhasil! 5 Gelombang tergabung dalam 1 file JPG.", "success");
+    } catch (err) {
+      headerControls.style.display = originalDisplay;
+      selectTacticsWave(originalWave);
+      console.error("Master JPG Error:", err);
+      showToast("Gagal mengexport gambar gabungan.", "error");
     }
   }
 }
 
-async function captureAndDownloadWaveJPG(waveNum) {
+async function captureSingleWaveJPG(waveNum) {
   const tacticsTab = document.getElementById('tab-tactics');
   const headerControls = document.getElementById('tactic-header-controls');
   const originalDisplay = headerControls.style.display;
   headerControls.style.display = 'none';
-
   window.scrollTo(0, 0);
 
   try {
@@ -1764,80 +1818,100 @@ async function captureAndDownloadWaveJPG(waveNum) {
     headerControls.style.display = originalDisplay;
     
     const link = document.createElement('a');
-    link.download = `Taktik_Futsal_Gelombang_${waveNum}.jpg`;
+    link.download = `Taktik_Gelombang_${waveNum}_Futsal.jpg`;
     link.href = canvas.toDataURL('image/jpeg', 0.95);
     link.click();
+    showToast(`Berhasil export JPG Gelombang ${waveNum}!`, "success");
   } catch (err) {
     headerControls.style.display = originalDisplay;
     console.error(err);
   }
 }
 
+
+// =======================================================================
+// EXPORT PDF: LAPORAN LENGKAP & RAPI (NAMA, POSISI, GELOMBANG & GAMBAR STRATEGI)
+// =======================================================================
+
 async function exportStrategyPDF() {
-  const modeChoice = confirm("Pilih Mode Export PDF:\n\n[OK] = PDF Lengkap KESELURUHAN GELOMBANG + Rincian Skuad\n[Cancel] = PDF Gelombang " + activeTacticsWave + " Saja + Rincian Skuad");
+  const isAll = confirm("Pilih Mode Export Laporan PDF:\n\n[OK] = Laporan Lengkap KESELURUHAN GELOMBANG (1 - 5) + Rincian Skuad\n[Cancel] = Laporan Gelombang " + activeTacticsWave + " Saja + Rincian Skuad");
   
-  // Buat Container Temporer untuk Laporan PDF Lengkap
+  showToast("Menyiapkan laporan PDF rapi...", "info");
+  const originalWave = activeTacticsWave;
+  const targetWaves = isAll ? [1, 2, 3, 4, 5] : [activeTacticsWave];
+
+  // Buat container HTML laporan PDF terstruktur
   const pdfContainer = document.createElement('div');
   pdfContainer.className = "bg-slate-950 text-white p-6 space-y-6";
   pdfContainer.style.width = "800px";
 
-  const targetWaves = modeChoice ? [1, 2, 3, 4, 5] : [activeTacticsWave];
-
-  // Header Laporan PDF
   let pdfHtml = `
-    <div style="border-b: 2px solid #22c55e; padding-bottom: 12px; margin-bottom: 20px;">
-      <h1 style="font-size: 20px; font-weight: 800; color: #22c55e;">FUTSAL TACTICAL PRO - LAPORAN RINCIAN FORMATION & SKUAD</h1>
-      <p style="font-size: 11px; color: #94a3b8;">Dicetak pada: ${new Date().toLocaleString('id-ID')} | Total Pemain Terdaftar: ${players.length}</p>
+    <div style="border-bottom: 3px solid #22c55e; padding-bottom: 15px; margin-bottom: 25px; text-align: center;">
+      <h1 style="font-size: 22px; font-weight: 800; color: #22c55e; margin: 0;">FUTSAL TACTICAL PRO</h1>
+      <p style="font-size: 13px; font-weight: bold; color: #38bdf8; margin: 5px 0;">LAPORAN RESMI FORMASI & RINCIAN GELOMBANG PEMAIN</p>
+      <p style="font-size: 10px; color: #94a3b8; margin: 0;">Waktu Cetak: ${new Date().toLocaleString('id-ID')} | Total Skuad: ${players.length} Pemain</p>
     </div>
   `;
 
   for (let w of targetWaves) {
     selectTacticsWave(w);
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 350));
 
     const activeWavePlayers = players.filter(p => isPlayerInWave(p, w));
     const waveFormationName = waveFormations[w] || "1-2-1";
 
-    // Screenshot Visual Lapangan untuk Gelombang W
+    // Tangkap gambar lapangan taktik gelombang ini
     const pitchEl = document.querySelector('.pitch-bg');
     const pitchCanvas = await html2canvas(pitchEl, { scale: 2, useCORS: true, backgroundColor: '#080c14' });
     const pitchImgData = pitchCanvas.toDataURL('image/jpeg', 0.95);
 
     pdfHtml += `
-      <div style="page-break-after: always; margin-bottom: 30px; border: 1px solid #334155; padding: 16px; border-radius: 12px; background: #0f172a;">
-        <h2 style="font-size: 16px; font-weight: 700; color: #38bdf8; margin-bottom: 8px;">
-          GELOMBANG ${w} — Formasi: ${waveFormationName}
-        </h2>
+      <div style="page-break-after: always; margin-bottom: 40px; border: 1px solid #334155; padding: 20px; border-radius: 16px; background: #0f172a;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #22c55e; padding-bottom: 10px; margin-bottom: 15px;">
+          <h2 style="font-size: 16px; font-weight: 800; color: #22c55e; margin: 0;">
+            GELOMBANG ${w} [ Formasi: ${waveFormationName} ]
+          </h2>
+          <span style="font-size: 11px; background: #1e293b; color: #38bdf8; padding: 4px 10px; border-radius: 6px; font-weight: bold;">
+            ${activeWavePlayers.length} Pemain Aktif
+          </span>
+        </div>
         
-        <!-- Gambar Lapangan Taktik -->
-        <div style="text-center: center; margin-bottom: 16px;">
-          <img src="${pitchImgData}" style="width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; border: 1px solid #22c55e;" />
+        <!-- Gambar Visual Formasi Lapangan -->
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="${pitchImgData}" style="width: 100%; max-height: 350px; object-fit: contain; border-radius: 10px; border: 2px solid #22c55e;" />
         </div>
 
-        <!-- Tabel Rincian Pemain Gelombang Ini -->
-        <h3 style="font-size: 12px; font-weight: 700; color: #22c55e; margin-bottom: 6px;">RINCIAN PEMAIN GELOMBANG ${w}</h3>
-        <table style="width: 100%; font-size: 10px; border-collapse: collapse; margin-bottom: 12px; text-align: left;">
+        <!-- Tabel Rincian Anggota Gelombang -->
+        <h3 style="font-size: 12px; font-weight: 700; color: #38bdf8; margin-bottom: 8px; text-transform: uppercase;">
+          <i class="fa-solid fa-users"></i> Rincian Pemain & Pasangan Pengganti Gelombang ${w}
+        </h3>
+        <table style="width: 100%; font-size: 10px; border-collapse: collapse; margin-bottom: 15px; text-align: left;">
           <thead>
-            <tr style="background: #020617; color: #94a3b8; border-bottom: 1px solid #334155;">
-              <th style="padding: 6px;">NO</th>
-              <th style="padding: 6px;">NAMA PEMAIN</th>
-              <th style="padding: 6px;">POSISI</th>
-              <th style="padding: 6px;">STATUS</th>
-              <th style="padding: 6px;">PASANGAN PENGGANTI</th>
-              <th style="padding: 6px; text-align: center;">POWER</th>
+            <tr style="background: #020617; color: #94a3b8; border-bottom: 2px solid #334155;">
+              <th style="padding: 8px;">NO</th>
+              <th style="padding: 8px;">NAMA PEMAIN</th>
+              <th style="padding: 8px;">POSISI</th>
+              <th style="padding: 8px;">STATUS / GELOMBANG</th>
+              <th style="padding: 8px;">PASANGAN PENGGANTI</th>
+              <th style="padding: 8px; text-align: center;">POWER</th>
             </tr>
           </thead>
           <tbody>
             ${activeWavePlayers.map(p => {
-              const lockBadge = isLocked(p.status) ? "🔒 FULL TIME" : p.status;
+              const isLockedPlayer = isLocked(p.status);
+              const replacement = players.find(x => x.id === p.pengganti_id);
+              const repName = replacement ? (replacement.nama_panggilan || replacement.nama) : (p.pengganti_nama !== '-' ? p.pengganti_nama : 'Otomatis');
+              
               return `
                 <tr style="border-bottom: 1px solid #1e293b; color: #f8fafc;">
-                  <td style="padding: 6px; font-weight: bold; color: #22c55e;">#${p.nomor_punggung}</td>
-                  <td style="padding: 6px; font-weight: bold;">${p.nama} (${p.nama_panggilan || p.nama})</td>
-                  <td style="padding: 6px;">${p.posisi}</td>
-                  <td style="padding: 6px; color: ${isLocked(p.status) ? '#c084fc' : '#38bdf8'}; font-weight: bold;">${lockBadge}</td>
-                  <td style="padding: 6px;">${p.pengganti_nama !== '-' ? '➔ ' + p.pengganti_nama : '-'}</td>
-                  <td style="padding: 6px; text-align: center; font-weight: bold; color: #a855f7;">${p.physical || 70}</td>
+                  <td style="padding: 8px; font-weight: bold; color: #22c55e;">#${p.nomor_punggung}</td>
+                  <td style="padding: 8px; font-weight: bold;">${p.nama} <span style="color: #38bdf8;">(${p.nama_panggilan || p.nama})</span></td>
+                  <td style="padding: 8px;">${p.posisi}</td>
+                  <td style="padding: 8px; color: ${isLockedPlayer ? '#c084fc' : '#38bdf8'}; font-weight: bold;">
+                    ${isLockedPlayer ? '🔒 KUNCI (Full Time)' : p.status}
+                  </td>
+                  <td style="padding: 8px; color: #fbbf24; font-weight: bold;">${repName}</td>
+                  <td style="padding: 8px; text-align: center; font-weight: bold; color: #a855f7;">${p.physical || 70}</td>
                 </tr>
               `;
             }).join('')}
@@ -1845,9 +1919,9 @@ async function exportStrategyPDF() {
         </table>
 
         <!-- Catatan Taktik Pelatih -->
-        <div style="background: #020617; padding: 8px; border-radius: 6px; border: 1px solid #1e293b; font-size: 10px;">
-          <strong style="color: #f59e0b;">Catatan Pelatih:</strong>
-          <p style="color: #cbd5e1; margin-top: 2px;">${document.getElementById('coach-notes').value || 'Tidak ada catatan khusus.'}</p>
+        <div style="background: #020617; padding: 10px; border-radius: 8px; border: 1px solid #334155; font-size: 10px;">
+          <strong style="color: #f59e0b; display: block; margin-bottom: 4px;">Catatan Taktik Pelatih (Gelombang ${w}):</strong>
+          <p style="color: #cbd5e1; margin: 0;">${document.getElementById('coach-notes').value || 'Tidak ada catatan khusus untuk gelombang ini.'}</p>
         </div>
       </div>
     `;
@@ -1855,10 +1929,11 @@ async function exportStrategyPDF() {
 
   pdfContainer.innerHTML = pdfHtml;
   document.body.appendChild(pdfContainer);
+  selectTacticsWave(originalWave); // Kembalikan ke gelombang semula
 
   const opt = {
     margin:       0.2,
-    filename:     modeChoice ? `Laporan_Taktik_Lengkap_Semua_Gelombang.pdf` : `Laporan_Taktik_Gelombang_${activeTacticsWave}.pdf`,
+    filename:     isAll ? `Laporan_Resmi_Taktik_Futsal_Semua_Gelombang.pdf` : `Laporan_Resmi_Taktik_Gelombang_${originalWave}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#080c14' },
     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -1867,43 +1942,13 @@ async function exportStrategyPDF() {
   try {
     await html2pdf().set(opt).from(pdfContainer).save();
     document.body.removeChild(pdfContainer);
-    showToast("Berhasil Export PDF dengan Laporan Rincian Gelombang!", "success");
+    showToast("Berhasil Export Laporan PDF Rapi!", "success");
   } catch (err) {
     document.body.removeChild(pdfContainer);
     console.error(err);
     showToast("Gagal export PDF.", "error");
   }
 }
-
-    function exportStrategyPDF() {
-      const tacticsTab = document.getElementById('tab-tactics');
-      
-      // Sembunyikan bagian kontrol formasi
-      const headerControls = document.getElementById('tactic-header-controls');
-      const originalDisplay = headerControls.style.display;
-      headerControls.style.display = 'none';
-      
-      window.scrollTo(0, 0);
-
-      const opt = {
-        margin:       0.3,
-        filename:     `Taktik_Gelombang_${activeTacticsWave}_Futsal.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#080c14' },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' } 
-      };
-
-      html2pdf().set(opt).from(tacticsTab).save().then(() => {
-        // Kembalikan tombol kontrol
-        headerControls.style.display = originalDisplay;
-        showToast(`Berhasil export PDF Visual Taktik (Gelombang ${activeTacticsWave})!`, "success");
-      }).catch(err => {
-        headerControls.style.display = originalDisplay;
-        console.error("PDF Export Error:", err);
-        showToast("Gagal export PDF. Silakan coba lagi.", "error");
-      });
-    }
-
     // MODAL CONTROL & CRUD
     function openPlayerModal() {
       if (!isAdmin) {
